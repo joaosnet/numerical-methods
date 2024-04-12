@@ -1,0 +1,38 @@
+{% extends "homepage.html" %}
+
+{% block title %}
+Portfolio - Computer Engineer
+{% endblock %}
+
+{% block body %}
+<body class="overflow-hidden">
+    <div class="container">
+      <header>
+        <nav>
+          <div class="logo-pinterest">
+            <img src="{{ url_for('static', filename='fotos_site/logo.png') }}" />
+          </div>
+
+        <div class="header">
+            <h1>Meus Links</h1>
+        </div>
+
+          <div class="restante-nav">
+            <a href="" class="link-nav">About</a>
+            <a href="" class="link-nav">Business</a>
+            <a href="" class="link-nav">Blog</a>
+          </div>
+        </nav>
+      </header>
+
+      <img src="{{ url_for('static', filename='fotos_site/mikebrown99_Cheerful_Inspiring_Landscapes_A_vast_green_field_of_7307b2f5-9952-4942-8adc-eb6b75e06425.png') }}" class="bg-imagem-pinterest" />
+
+    <div class="link-aggregator">
+        <a href="https://github.com/joaosnet" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/in/joaonativi" target="_blank">LinkedIn</a>
+        <a href="https://www.solucoesinovadora.com/" target="_blank">Personal Website</a>
+        <a href="/dash/">Roda da Vida</a>
+        <a href="/previsao">Previsão de Preços</a>
+    </div>
+</body>
+{% endblock %}
