@@ -23,12 +23,24 @@ left_column = html.Div(
         html.Div(children='''Adicione um intervalo e uma função para visualizar o método da bisseção:'''),
         html.Div([
             html.Label('Intervalo:'),
-            dcc.Input(id='intervalo_a', type='text', value='0'),
-            html.Label('Intervalo:'),
-            dcc.Input(id='intervalo_b', type='text', value='1'),
+            html.Br(),
+            dcc.RangeSlider(
+                id='intervalo',
+                min=-2,
+                max=2,
+                step=0.5,
+                value=[0, 1],
+                marks={i: str(i) for i in range(-10, 11)},
+            ),
+            html.Br(),
             html.Label('Função:'),
-            dcc.Input(id='funcao', type='text', value='32x**2 - 68*x + 21'),
+            dcc.Input(id='funcao', type='text', value='32*x**2 - 68*x + 21'),
             html.Hr(),
+            html.Br(),
+            html.Label('Interações:'),
+            dcc.Input(id='interacoes', type='number', value=3, min=3, max=100, step=1),
+            html.Hr(),
+            html.Br(),
             html.Button('Calcular', id='calcular-bissecao', n_clicks=0),
         ])
         ] # Descrição do aplicativo
@@ -141,16 +153,21 @@ def criar_conta(n_clicks, email, senha):
             
 # Calculando a bisseção
 @app.callback(Output("tabs", "children"), Input("calcular-bissecao", "n_clicks"), 
-              State("intervalo_a", "value"), State("intervalo_b", "value"), State("funcao", "value"))
-def calcular_bissecao(n_clicks, intervalo_a, intervalo_b, funcao):
+              State("intervalo", "value"), State("funcao", "value"), State("interacoes", "value"))
+def calcular_bissecao(n_clicks, intervalo, funcao, interacoes):
     # tratando a função que está em string para uma função que o python entenda
-    Bissecao_obj = Bissecao(float(intervalo_a), float(intervalo_b), 1e-6, lambda x: eval(funcao.replace('x', str(x))))
-    x = Bissecao_obj.bissecao()
-    df = Bissecao_obj.get_df()
-    iteracoes = Bissecao_obj.get_iteracoes()
+    Bissecao_obj = Bissecao(intervalo[0], intervalo[1], lambda x: eval(funcao), maxiter=interacoes)  # Aumenta o número máximo de iterações
+    df = Bissecao_obj.get_df()  # Move a definição de df para fora do bloco try/except
+    try:
+        x = Bissecao_obj.bissecao()
+        iteracoes = Bissecao_obj.get_iteracoes()
+        resultado = f'A raiz da função {funcao} no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações.'
+    except RuntimeError as e:
+        resultado = f'O método da bisseção não convergiu após {interacoes} iterações. Erro: {e}'
+    
     return [
         html.H5(children='Método da Bisseção'), # Título do método
-        html.Div(children=f'A raiz da função {funcao} no intervalo [{intervalo_a}, {intervalo_b}] é {x} com {iteracoes} iterações.'), # Resultado do método
+        html.Div(children=resultado), # Resultado do método
         html.Hr(),
         html.Div(children='Tabela de Iterações:'),
         html.Table([
@@ -166,23 +183,30 @@ def calcular_bissecao(n_clicks, intervalo_a, intervalo_b, funcao):
     ]
 
 # Atualizando o gráfico
-@app.callback(Output("graph", "figure"), Input("calcular-bissecao", "n_clicks"),
-              State("intervalo_a", "value"), State("intervalo_b", "value"), State("funcao", "value"))
-def atualizar_grafico(n_clicks, intervalo_a, intervalo_b, funcao):
-    x = np.linspace(float(intervalo_a), float(intervalo_b), 100) # Gerando 100 pontos entre o intervalo
-    y = [eval(funcao.replace('x', str(xi))) for xi in x] # Calculando os valores de y
+@app.callback(Output("graph", "figure"), Input("calcular-bissecao", "n_clicks"), 
+              State("intervalo", "value"), State("funcao", "value"), State("interacoes", "value"))
+def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
+    # tratando a função que está em string para uma função que o python entenda
+    x = np.linspace(intervalo[0], intervalo[1], 100)
+    y = eval(funcao.replace('x', 'x'))
+
+    # Calcular a raiz usando o método da bisseção
+    bissecao = Bissecao(intervalo[0], intervalo[1], lambda x: eval(funcao.replace('x', 'x')))
+    raiz = bissecao.bissecao()
+
     return {
-        "data": [
-            {
-                "x": x,
-                "y": y,
-                "type": "scatter",
-            }
+        'data': [
+            {'x': x, 'y': y, 'type': 'scatter', 'name': 'Função'},
+            {'x': [raiz], 'y': [0], 'mode': 'markers', 'name': 'Raiz', 'marker': {'size': 10, 'color': 'red'}}
         ],
-        "layout": {
-            "title": f"Gráfico da função {funcao}",
-            "xaxis": {"title": "x"},
-            "yaxis": {"title": "f(x)"}
+        'layout': {
+            'title': f'Gráfico da função {funcao}',
+            'xaxis': {
+                'title': 'x'
+            },
+            'yaxis': {
+                'title': 'f(x)'
+            }
         }
     }
         
