@@ -20,4 +20,4 @@ bcrypt = Bcrypt(server)
 login_manager = LoginManager(server)
 login_manager.login_view = '/login'
 
-from dashapp import views
+from dashapp import views  # noqa: E402, F401
