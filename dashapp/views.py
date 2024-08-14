@@ -5,12 +5,11 @@ from dashapp.models import Usuario
 from flask_login import login_required, login_user, logout_user, current_user
 from flask import render_template, url_for, redirect, request
 from dashapp.forms import FormLogin, FormCriarConta
-from werkzeug.utils import secure_filename
+# from werkzeug.utils import secure_filename
 import numpy as np
 import pandas as pd
 import joblib
-from metodos import Bissecao
-
+from metodos import metodos_numericos
 
 # Definindo a coluna esquerda
 left_column = html.Div(
@@ -159,7 +158,7 @@ def criar_conta(n_clicks, email, senha):
     Input("botao-login", "n_clicks"),
     [State("email", "value"), State("senha", "value")],
 )
-def criar_conta(n_clicks, email, senha):
+def criar_conta(n_clicks, email, senha):  # noqa: F811
     if n_clicks:
         # vou criar a conta
         # verificar se já existe um usuário com essa conta
@@ -184,14 +183,16 @@ def criar_conta(n_clicks, email, senha):
     State("interacoes", "value"),
 )
 def calcular_bissecao(n_clicks, intervalo, funcao, interacoes):
+    # inicializando a classe metodos_numericos
+    mn = metodos_numericos()
     # tratando a função que está em string para uma função que o python entenda
-    Bissecao_obj = Bissecao(
+    Bissecao_obj = mn.bissecao(
         intervalo[0], intervalo[1], lambda x: eval(funcao), maxiter=interacoes
     )  # Aumenta o número máximo de iterações
-    df = Bissecao_obj.get_df()  # Move a definição de df para fora do bloco try/except
+    df = mn.get_df()  # Move a definição de df para fora do bloco try/except
     try:
-        x = Bissecao_obj.bissecao()
-        iteracoes = Bissecao_obj.get_iteracoes()
+        x = Bissecao_obj
+        iteracoes = mn.get_iteracoes()
         resultado = f"A raiz da função {funcao} no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
     except RuntimeError as e:
         resultado = (
@@ -222,15 +223,17 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes):
     State("interacoes", "value"),
 )
 def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
+    # inicializando a classe metodos_numericos
+    mn = metodos_numericos()
     # tratando a função que está em string para uma função que o python entenda
     x = np.linspace(intervalo[0], intervalo[1], 100)
     y = eval(funcao.replace("x", "x"))
 
     # Calcular a raiz usando o método da bisseção
-    bissecao = Bissecao(
+    bissecao = mn.bissecao(
         intervalo[0], intervalo[1], lambda x: eval(funcao.replace("x", "x"))
     )
-    raiz = bissecao.bissecao()
+    raiz = bissecao
 
     return {
         "data": [
@@ -303,7 +306,7 @@ def logout():
 
 @server.route("/previsao", methods=["GET", "POST"])
 def previsao():
-    from pprint import pprint as pp
+    # from pprint import pprint as pp
 
     dicionario = {}
     if request.method == "POST":
