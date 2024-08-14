@@ -15,15 +15,15 @@ class metodos_numericos:
         get_iteracoes(): Retorna o número de iterações realizadas.
     """  # noqa: E501
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(
         self,
     ):
         self.df = pd.DataFrame(
-            columns=["a", "b", "Aproximação da Raiz", "Erro Relativo (%)"]
+            columns=['a', 'b', 'Aproximação da Raiz', 'Erro Relativo (%)']
         )
         self.iteracoes = 0
 
-    def bissecao(
+    def bissecao(  # noqa: PLR0913, PLR0917
         self,
         a,
         b,
@@ -38,7 +38,7 @@ class metodos_numericos:
     ):
         """
         Executa o método da bisseção para encontrar a raiz.
-        
+
         Args:
         a (float): O limite inferior do intervalo.
         b (float): O limite superior do intervalo.
@@ -52,7 +52,7 @@ class metodos_numericos:
             Se False, retorna apenas a raiz. Defaults to False.
         disp (bool, optional): Se True, exibe uma mensagem de erro se o método não convergir.
             Se False, retorna None se o método não convergir. Defaults to True.
-            
+
         Attributes:
         x_anterior (float): O valor da raiz na iteração anterior.
 
@@ -63,16 +63,13 @@ class metodos_numericos:
             RuntimeError: Se o método não convergir após o número máximo de iterações.
         """  # noqa: E501
         x = None
-        a = a
-        b = b
-        f = f
         x_anterior = None
         while abs(b - a) > tol:
             self.iteracoes += 1
             if self.iteracoes > maxiter:
                 if disp:
                     raise RuntimeError(
-                        "Falha ao convergir após %d iterações, valor é %s"
+                        'Falha ao convergir após %d iterações, valor é %s'
                         % (maxiter, x)
                     )
                 else:
@@ -117,18 +114,29 @@ class metodos_numericos:
         return self.iteracoes
 
 
-if __name__ == "__main__":
-    # import math
-    # import numpy as np
-
-    def f(x):
-        return 32 * x**2 - 68 * x + 21
-
-    # f = lambda x: math.exp(-x) - x
+if __name__ == '__main__':
+    # inicializa a biblioteca
     mn = metodos_numericos()
+    import random
+
+    # seleciona aleatoriamente qual dos dois tipos de funções para testar o
+    # método da bisseção
+    var = random.randint(0, 1)
+    if var == 0:
+
+        def f(x):
+            return 32 * x**2 - 68 * x + 21
+
+    else:
+        import math
+
+        def f(x):
+            return math.exp(-x) - x
+
+    # ----------------------------------------
     raiz = mn.bissecao(0, 1, f)
-    print("Raiz:", raiz)
-    print("Iterações:", mn.get_iteracoes())
+    print('Raiz:', raiz)
+    print('Iterações:', mn.get_iteracoes())
     print(mn.get_df())
 
     from scipy.optimize import bisect
@@ -139,6 +147,6 @@ if __name__ == "__main__":
     b = 1
     raiz1 = bisect(f, a, b)
 
-    print("Verdadeira Raiz:", raiz1)
+    print('Verdadeira Raiz:', raiz1)
     # Comparação
-    print("Diferença:", abs(raiz - raiz1))
+    print('Diferença:', abs(raiz - raiz1))
