@@ -1,5 +1,5 @@
 import pandas as pd
-
+import numpy as np # noqa: F401 usado para usar funcoes no
 
 class metodos_numericos:
     """

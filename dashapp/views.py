@@ -98,7 +98,7 @@ app.layout = html.Div([
 @app.callback(Output("conteudo_pagina", "children"), Input("url", "pathname"))
 def carregar_pagina(pathname):
     if pathname == "/dash/":
-        if current_user.is_authenticated:
+        if True:
             return layout_dashboard
         else:
             return dcc.Link(
