@@ -1,35 +1,42 @@
 import pandas as pd
-import numpy as np # noqa: F401 usado para usar funcoes no
+import numpy as np
+
 
 class metodos_numericos:
     """
     Biblioteca de métodos numéricos para encontrar raízes de funções.
 
     Attributes:
-        df (pandas.DataFrame): DataFrame que armazena os valores intermediários de `a`, `b`, `X0` e `Er`.
+        df (pandas.DataFrame): DataFrame que armazena os valores intermediários de `a`, `b`, `X0`, `Er`, e sinais.
         iteracoes (int): O número de iterações realizadas.
 
     Methods:
         bissecao(): Executa o método da bisseção para encontrar a raiz.
         get_df(): Retorna o DataFrame com os valores intermediários.
         get_iteracoes(): Retorna o número de iterações realizadas.
-    """  # noqa: E501
+    """
 
-    def __init__(
-        self,
-    ):
+    def __init__(self):
         self.df = pd.DataFrame(
-            columns=['a', 'b', 'Aproximação da Raiz', 'Erro Relativo (%)']
+            columns=[
+                "a",
+                "b",
+                "Aproximação da Raiz",
+                "Erro Relativo (%)",
+                "Sinal a",
+                "Sinal b",
+                "Sinal x",
+            ]
         )
         self.iteracoes = 0
 
-    def bissecao(  # noqa: PLR0913, PLR0917
+    def bissecao(
         self,
         a,
         b,
         f,
         args=(),
-        tol=0.00000000000000001,
+        tol=1e-18,
         xtol=1e-12,
         rtol=1e-12,
         maxiter=100,
@@ -44,7 +51,7 @@ class metodos_numericos:
         b (float): O limite superior do intervalo.
         f (function): A função para a qual se deseja encontrar a raiz.
         args (tuple, optional): Argumentos adicionais para a função `f`. Defaults to ().
-        tol (float, optional): A tolerância para a diferença entre `a` e `b`. Defaults to 0.00000000000000001.
+        tol (float, optional): A tolerância para a diferença entre `a` e `b`. Defaults to 1e-18.
         xtol (float, optional): A tolerância para a diferença entre as raízes consecutivas. Defaults to 1e-12.
         rtol (float, optional): A tolerância para o valor absoluto da função. Defaults to 1e-12.
         maxiter (int, optional): O número máximo de iterações permitidas. Defaults to 100.
@@ -53,15 +60,12 @@ class metodos_numericos:
         disp (bool, optional): Se True, exibe uma mensagem de erro se o método não convergir.
             Se False, retorna None se o método não convergir. Defaults to True.
 
-        Attributes:
-        x_anterior (float): O valor da raiz na iteração anterior.
-
         Returns:
             float: A raiz da função.
             pandas.DataFrame: O DataFrame com os valores intermediários, se `full_output` for True.
         Raises:
             RuntimeError: Se o método não convergir após o número máximo de iterações.
-        """  # noqa: E501
+        """
         x = None
         x_anterior = None
         while abs(b - a) > tol:
@@ -69,20 +73,28 @@ class metodos_numericos:
             if self.iteracoes > maxiter:
                 if disp:
                     raise RuntimeError(
-                        'Falha ao convergir após %d iterações, valor é %s'
+                        "Falha ao convergir após %d iterações, valor é %s"
                         % (maxiter, x)
                     )
                 else:
                     return x
             fa = f(a, *args)
-            # fb = f(b, *args)
+            fb = f(b, *args)
             x = (a + b) / 2
             fx = f(x, *args)
             if self.iteracoes != 1:
                 erro = abs((x - x_anterior) / x) * 100
             else:
                 erro = None
-            self.df.loc[self.iteracoes] = [a, b, x, erro]
+            self.df.loc[self.iteracoes] = [
+                a,
+                b,
+                x,
+                erro if erro is not None else '-',
+                "positivo" if np.sign(fa) > 0 else "negativo",
+                "positivo" if np.sign(fb) > 0 else "negativo",
+                "positivo" if np.sign(fx) > 0 else "negativo",
+            ]
             if abs(b - a) < xtol or abs(fx) < rtol:
                 break
             if fa * fx < 0:
@@ -114,18 +126,23 @@ class metodos_numericos:
         return self.iteracoes
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # inicializa a biblioteca
     mn = metodos_numericos()
     import random
 
     # seleciona aleatoriamente qual dos dois tipos de funções para testar o
     # método da bisseção
-    var = random.randint(0, 1)
+    var = random.randint(0, 2)
     if var == 0:
 
         def f(x):
             return 32 * x**2 - 68 * x + 21
+        
+    elif var == 1:
+        
+        def f(x):
+            return np.sin(x) - 0.5
 
     else:
         import math
@@ -135,8 +152,8 @@ if __name__ == '__main__':
 
     # ----------------------------------------
     raiz = mn.bissecao(0, 1, f)
-    print('Raiz:', raiz)
-    print('Iterações:', mn.get_iteracoes())
+    print("Raiz:", raiz)
+    print("Iterações:", mn.get_iteracoes())
     print(mn.get_df())
 
     from scipy.optimize import bisect
@@ -145,8 +162,12 @@ if __name__ == '__main__':
     # [a, b]
     a = 0
     b = 1
-    raiz1 = bisect(f, a, b)
+    raiz1, converg = bisect(f, a, b, full_output=True)
 
-    print('Verdadeira Raiz:', raiz1)
+    print("Verdadeira Raiz:", raiz1)
     # Comparação
-    print('Diferença:', abs(raiz - raiz1))
+    print("Diferença:", abs(raiz - raiz1))
+
+    from pprint import pprint as pp
+
+    pp(converg)
