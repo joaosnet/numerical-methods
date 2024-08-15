@@ -1,74 +1,105 @@
-# Wheel of Life
-![GitHub repo size](https://img.shields.io/github/repo-size/joaosnet/wheel-of-Life?style=for-the-badge)
-![GitHub language count](https://img.shields.io/github/languages/count/joaosnet/wheel-of-Life?style=for-the-badge)
-![GitHub forks](https://img.shields.io/github/forks/joaosnet/wheel-of-Life?style=for-the-badge)
-![Bitbucket open issues](https://img.shields.io/bitbucket/issues/joaosnet/wheel-of-Life?style=for-the-badge)
-![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/joaosnet/wheel-of-Life?style=for-the-badge)
-[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/joaosnet/wheel-of-Life/blob/master/README.pt-br.md)
+# Roda da Vida
+![Tamanho do repositório do GitHub](https://img.shields.io/github/repo-size/joaosnet/wheel-of-Life?style=for-the-badge)
+![Contagem de linguagens do GitHub](https://img.shields.io/github/languages/count/joaosnet/wheel-of-Life?style=for-the-badge)
+![Forks do GitHub](https://img.shields.io/github/forks/joaosnet/wheel-of-Life?style=for-the-badge)
+![Problemas abertos do Bitbucket](https://img.shields.io/bitbucket/issues/joaosnet/wheel-of-Life?style=for-the-badge)
+![Pull requests abertos do Bitbucket](https://img.shields.io/bitbucket/pr-raw/joaosnet/wheel-of-Life?style=for-the-badge)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/joaosnet/wheel-of-Life/blob/master/README.md)
 
 
 
-<img align="right" height="256" src="screenshots/wheel-of-life-dash.png"/>
+<img src="screenshots/dash.png"/>
 
-## Introduction
+## Introdução
 
-The Wheel of Life is a personal assessment tool that helps us visualize and balance different areas of our life. It is represented as a circle divided into 12 equal sections, each corresponding to essential pillars or sectors in our life. These areas include Emotional, Spiritual, Family, Marriage/Partnership, Children, Social, Health, Contribution, Intellectual, Financial, Career, and Emotional (again).
+## Habilidades Desenvolvidas
+<img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />  <img src="https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" /> <img src="https://img.shields.io/badge/Anaconda-%2344A833.svg?style=for-the-badge&logo=anaconda&logoColor=white" />
 
-## How to Use
 
-1. Clone the Repository: `git clone https://github.com/your-username/wheel-of-life.git`
-2. Open the Python script: `cd wheel-of-life && python main.py`
-3. Adjust the Scales: A graphical interface will be displayed with 12 sliders. Adjust each slider to indicate your satisfaction or dedication level in the corresponding life aspect (scale: 1 to 10).
-4. Click "Update" Button: After adjusting the scales, click the "Update" button to visualize the Wheel of Life.
-5. Analyze and Reflect: Observe the Wheel of Life chart to identify areas for improvement or those that need more attention.
+## Como Usar
 
-## Screenshots
+### No windows
+1. Instale o [pyenv](https://github.com/pyenv-win/pyenv-win?tab=readme-ov-file#installation)
 
-Below are some screenshots of the Wheel of Life tool:
-
-### Screenshot 1: Plotly Radar Chart
-
-![Plotly Radar Chart](/screenshots/wheel-of-life.png)
-
-_Figure 1: Plotly Radar Chart_
-
-### Screenshot 2: Dash Wheel of Life
-
-![Dash Wheel of Life](/screenshots/wheel-of-life-dash.png)
-
-_Figure 2: Dash Wheel of Life_
-
-## Examples
-
-Below are some examples of how the Wheel of Life can be used:
-
-### Example 1: Balanced Life
-
-In this example, the individual has evenly distributed satisfaction across all life aspects, resulting in a balanced and harmonious life.
-
+2. atualize o pyenv
+```bash
+pyenv update
 ```
-Emotional: 7  |  Spiritual: 6  |  Family: 8  |  Marriage/Partnership: 7
-Children: 6  |  Social: 8  |  Health: 8  |  Contribution: 7
-Intellectual: 7  |  Financial: 6  |  Career: 7  |  Emotional (again): 7
+3. instale o python 3.12
+```bash
+pyenv install 3.12
 ```
-
-### Example 2: Unbalanced Life
-
-In this example, the individual has low satisfaction in several life aspects, indicating an unbalanced life that requires attention and improvement.
-
+4. selecione o ambiente local e global
+```bash
+pyenv local 3.12
+pyenv global 3.12
 ```
-Emotional: 4  |  Spiritual: 5  |  Family: 7  |  Marriage/Partnership: 6
-Children: 5  |  Social: 6  |  Health: 4  |  Contribution: 6
-Intellectual: 5  |  Financial: 4  |  Career: 5  |  Emotional (again): 4
+5. Instale o pipx
+```bash
+pip install pipx
+```
+6. Instale o poetry
+```bash
+pipx install poetry
+```	
+7. configure o poetry
+```bash
+poetry config virtualenvs.in-project true
+```
+8. Clone o Repositório: `git clone https://github.com/joaosnet/numerical-methods.git`
+
+9. Instale as dependências
+```bash
+poetry install
+```
+10. Execute o aplicativo
+```bash
+python main.py
 ```
 
-## Conclusion
+### No Linux
+1. Instale o [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation)
 
-The Wheel of Life is a powerful tool for self-assessment and personal growth. By visualizing and reflecting on the different aspects of our life, we can identify areas that need improvement and create strategies to achieve a more balanced and fulfilling life.
+2. atualize o pyenv
+```bash
+pyenv update
+```
+3. instale o python 3.12
+```bash
+pyenv install 3.12
+```
+4. selecione o ambiente local e global
+```bash
+pyenv local 3.12
+pyenv global 3.12
+```
+5. Instale o pipx
+```bash
+pip install pipx
+```
+6. Instale o poetry
+```bash
+pipx install poetry
+```	
+7. configure o poetry
+```bash
+poetry config virtualenvs.in-project true
+```
+8. Clone o Repositório: `git clone https://github.com/joaosnet/numerical-methods.git`
 
-Feel free to use and modify this tool according to your needs. Happy wheeling!
+9. Instale as dependências
+```bash
+poetry install
+```
+10. Execute o aplicativo
+```bash
+python main.py
+```
 
-## 🤝 Contributing to Wheel of Life
+
+## Capturas de Tela
+
+## 🤝 Contribuidores
 
 <table>
   <tr>
@@ -82,6 +113,3 @@ Feel free to use and modify this tool according to your needs. Happy wheeling!
     </td>
   </tr>
 </table>
-
-
- 
