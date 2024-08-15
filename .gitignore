@@ -169,7 +169,6 @@ nohup.out
 
 script
 
-segredos.py
 dashapp/__pycache__/views.cpython-310.pyc
 
 .vscode
