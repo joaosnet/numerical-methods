@@ -8,36 +8,96 @@
 
 
 
-<img align="right" height="256" src="screenshots/wheel-of-life-dash.png"/>
+<img src="screenshots/dash.png"/>
 
 ## Introdução
 
-A Roda da Vida é uma ferramenta de avaliação pessoal que nos ajuda a visualizar e equilibrar diferentes áreas de nossa vida. Ela é representada como um círculo dividido em 12 seções iguais, cada uma correspondendo a pilares ou setores essenciais em nossa vida. Essas áreas incluem Emocional, Espiritual, Família, Casamento/Parceria, Filhos, Social, Saúde, Contribuição, Intelectual, Financeiro, Carreira e Emocional (novamente).
+## Habilidades Desenvolvidas
+<img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />  <img src="https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" /> <img src="https://img.shields.io/badge/Anaconda-%2344A833.svg?style=for-the-badge&logo=anaconda&logoColor=white" />
+
 
 ## Como Usar
 
-1. Clone o Repositório: `git clone https://github.com/your-username/wheel-of-life.git`
-2. Abra o Script Python: `cd wheel-of-life && python main.py`
-3. Ajuste as Escalas: Uma interface gráfica será exibida com 12 controles deslizantes. Ajuste cada controle deslizante para indicar seu nível de satisfação ou dedicação no aspecto correspondente da vida (escala: 1 a 10).
-4. Clique no Botão "Atualizar": Após ajustar as escalas, clique no botão "Atualizar" para visualizar a Roda da Vida.
-5. Analise e Reflita: Observe o gráfico da Roda da Vida para identificar áreas que precisam de melhoria ou que precisam de mais atenção.
+### No windows
+1. Instale o [pyenv](https://github.com/pyenv-win/pyenv-win?tab=readme-ov-file#installation)
+
+2. atualize o pyenv
+```bash
+pyenv update
+```
+3. instale o python 3.12
+```bash
+pyenv install 3.12
+```
+4. selecione o ambiente local e global
+```bash
+pyenv local 3.12
+pyenv global 3.12
+```
+5. Instale o pipx
+```bash
+pip install pipx
+```
+6. Instale o poetry
+```bash
+pipx install poetry
+```	
+7. configure o poetry
+```bash
+poetry config virtualenvs.in-project true
+```
+8. Clone o Repositório: `git clone https://github.com/joaosnet/numerical-methods.git`
+
+9. Instale as dependências
+```bash
+poetry install
+```
+10. Execute o aplicativo
+```bash
+python main.py
+```
+
+### No Linux
+1. Instale o [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation)
+
+2. atualize o pyenv
+```bash
+pyenv update
+```
+3. instale o python 3.12
+```bash
+pyenv install 3.12
+```
+4. selecione o ambiente local e global
+```bash
+pyenv local 3.12
+pyenv global 3.12
+```
+5. Instale o pipx
+```bash
+pip install pipx
+```
+6. Instale o poetry
+```bash
+pipx install poetry
+```	
+7. configure o poetry
+```bash
+poetry config virtualenvs.in-project true
+```
+8. Clone o Repositório: `git clone https://github.com/joaosnet/numerical-methods.git`
+
+9. Instale as dependências
+```bash
+poetry install
+```
+10. Execute o aplicativo
+```bash
+python main.py
+```
+
 
 ## Capturas de Tela
-
-Abaixo estão algumas capturas de tela da ferramenta Roda da Vida:
-
-### Captura de Tela 1: Gráfico de Radar do Plotly
-
-![Gráfico de Radar do Plotly](/screenshots/wheel-of-life.png)
-
-_Figura 1: Gráfico de Radar do Plotly_
-
-### Captura de Tela 2: Roda da Vida do Dash
-
-![Roda da Vida do Dash](/screenshots/wheel-of-life-dash.png)
-
-_Figura 2: Roda da Vida do Dash_
-
 
 ## 🤝 Contribuidores
 
