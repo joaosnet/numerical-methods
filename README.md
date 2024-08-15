@@ -1,4 +1,4 @@
-# Roda da Vida
+# Métodos Númericos 
 ![Tamanho do repositório do GitHub](https://img.shields.io/github/repo-size/joaosnet/wheel-of-Life?style=for-the-badge)
 ![Contagem de linguagens do GitHub](https://img.shields.io/github/languages/count/joaosnet/wheel-of-Life?style=for-the-badge)
 ![Forks do GitHub](https://img.shields.io/github/forks/joaosnet/wheel-of-Life?style=for-the-badge)
