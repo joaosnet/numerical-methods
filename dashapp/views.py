@@ -31,6 +31,8 @@ left_column = html.Div(
                 marks={i: str(i) for i in range(-10, 11)},
                 tooltip={"placement": "top", "always_visible": True},
                 pushable=True,
+                # definindo o tamanho do slider
+                updatemode="drag",
             ),
             html.Br(),
             html.Label("Função:"),
@@ -38,7 +40,7 @@ left_column = html.Div(
             html.Hr(),
             html.Br(),
             html.Label("Interações:"),
-            dcc.Input(id="interacoes", type="number", value=3, min=3, max=100, step=1),
+            dcc.Input(id="interacoes", type="number", value=100, min=3, max=100, step=1),
             html.Hr(),
             html.Br(),
             html.Button("Calcular", id="calcular-bissecao", n_clicks=0),
@@ -119,12 +121,15 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes):
         intervalo[0], intervalo[1], lambda x: eval(funcao), maxiter=interacoes
     )  # Aumenta o número máximo de iterações
     df = mn.get_df()  # Move a definição de df para fora do bloco try/except
-    funcao_sym = sp.sympify(funcao)
-    funcao_latex = sp.latex(funcao_sym)
+    try:
+        funcao_sym = sp.sympify(funcao)
+        funcao_latex = sp.latex(funcao_sym)
+    except:  # noqa: E722
+        funcao_latex = funcao
     try:
         x = Bissecao_obj
         iteracoes = mn.get_iteracoes()
-        resultado = f"A raiz da função ${funcao_latex}$ no intervalo \[{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
+        resultado = f"A raiz da função ${funcao_latex}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
     except RuntimeError as e:
         resultado = (
             f"O método da bisseção não convergiu após {interacoes} iterações. Erro: {e}"
@@ -168,8 +173,11 @@ def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
         intervalo[0], intervalo[1], lambda x: eval(funcao.replace("x", "x"))
     )
     raiz = bissecao
-    funcao_sym = sp.sympify(funcao)
-    funcao_latex = sp.latex(funcao_sym)
+    try:
+        funcao_sym = sp.sympify(funcao)
+        funcao_latex = sp.latex(funcao_sym)
+    except:  # noqa: E722
+        funcao_latex = funcao
     return {
         "data": [
             {"x": x, "y": y, "type": "scatter", "name": "Função"},
