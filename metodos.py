@@ -12,7 +12,7 @@ class metodos_numericos:
 
     Methods:
         bissecao(): Executa o método da bisseção para encontrar a raiz.
-        get_df(): Retorna o DataFrame com os valores intermediários.
+        get_df(): Retorna o DataFrame(tabela) com os valores intermediários.
         get_iteracoes(): Retorna o número de iterações realizadas.
     """
 
@@ -125,7 +125,7 @@ class metodos_numericos:
         """
         return self.iteracoes
 
-
+# Exemplo de uso da biblioteca de forma separada
 if __name__ == "__main__":
     # inicializa a biblioteca
     mn = metodos_numericos()
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
     # seleciona aleatoriamente qual dos dois tipos de funções para testar o
     # método da bisseção
-    var = random.randint(0, 3)
+    var = random.randint(0, 4)
     if var == 0:
 
         def f(x):
@@ -148,14 +148,22 @@ if __name__ == "__main__":
 
         def f(x):
             return np.sin(x) - 0.5
+        
+    elif var == 3:
+        
+        def f(x):
+            return np.cos(np.log(x**2+1))
 
     else:
         import math
 
         def f(x):
             return math.exp(-x) - x
+        
+        
 
     # ----------------------------------------
+    print("Para a função {}".format(str(f)))
     raiz = mn.bissecao(0, 1, f)
     print("Raiz:", raiz)
     print("Iterações:", mn.get_iteracoes())
@@ -163,7 +171,7 @@ if __name__ == "__main__":
 
     from scipy.optimize import bisect
 
-    # Use o método da bisseção para encontrar a raiz da função no intervalo
+    # Mmétodo da bisseção com scipy para encontrar a raiz da função no intervalo
     # [a, b]
     a = 0
     b = 1

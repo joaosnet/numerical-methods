@@ -40,7 +40,15 @@ left_column = html.Div(
             html.Hr(),
             html.Br(),
             html.Label("Interações:"),
-            dcc.Input(id="interacoes", type="number", value=100, min=3, max=100, step=1),
+            dcc.Input(
+                id="interacoes", type="number", value=100, min=3, max=100, step=1
+            ),
+            html.Hr(),
+            html.Br(),
+            html.Label("Tolerância:"),
+            dcc.Input(
+                id="tolerancia", type="number", value=1e-18, min=1e-18, max=100, step=1
+            ),
             html.Hr(),
             html.Br(),
             html.Button("Calcular", id="calcular-bissecao", n_clicks=0),
@@ -48,6 +56,7 @@ left_column = html.Div(
     ],  # Descrição do aplicativo
 )
 
+# Coluna Esquerda
 right_column = html.Div(
     id="right-column",
     className="eight columns",
@@ -97,12 +106,7 @@ app.layout = html.Div([
 @app.callback(Output("conteudo_pagina", "children"), Input("url", "pathname"))
 def carregar_pagina(pathname):
     if pathname == "/":
-        if True:
-            return layout_dashboard
-        else:
-            return dcc.Link(
-                "Usuário não autenticado, faça login aqui", "/login", refresh=True
-            )
+        return layout_dashboard
 
 
 # Calculando a bisseção
@@ -112,13 +116,14 @@ def carregar_pagina(pathname):
     State("intervalo", "value"),
     State("funcao", "value"),
     State("interacoes", "value"),
+    State("tolerancia", "value"),
 )
-def calcular_bissecao(n_clicks, intervalo, funcao, interacoes):
+def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
     # inicializando a classe metodos_numericos
     mn = metodos_numericos()
     # tratando a função que está em string para uma função que o python entenda
     Bissecao_obj = mn.bissecao(
-        intervalo[0], intervalo[1], lambda x: eval(funcao), maxiter=interacoes
+        intervalo[0], intervalo[1], lambda x: eval(funcao), maxiter=interacoes, tol=tolerancia
     )  # Aumenta o número máximo de iterações
     df = mn.get_df()  # Move a definição de df para fora do bloco try/except
     try:
