@@ -25,7 +25,7 @@ left_column = html.Div(
             dcc.RangeSlider(
                 id="intervalo",
                 min=-2,
-                max=2,
+                max=5,
                 step=0.5,
                 value=[0, 1],
                 marks={i: str(i) for i in range(-10, 11)},
@@ -36,7 +36,7 @@ left_column = html.Div(
             ),
             html.Br(),
             html.Label("Função:"),
-            dcc.Input(id="funcao", type="text", value="32*x**2 - 68*x + 21"),
+            dcc.Input(id="funcao", type="text", value="np.sin(x) - 0.5"),
             html.Hr(),
             html.Br(),
             html.Label("Interações:"),

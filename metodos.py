@@ -90,7 +90,7 @@ class metodos_numericos:
                 a,
                 b,
                 x,
-                erro if erro is not None else '-',
+                erro if erro is not None else "-",
                 "positivo" if np.sign(fa) > 0 else "negativo",
                 "positivo" if np.sign(fb) > 0 else "negativo",
                 "positivo" if np.sign(fx) > 0 else "negativo",
@@ -133,14 +133,19 @@ if __name__ == "__main__":
 
     # seleciona aleatoriamente qual dos dois tipos de funções para testar o
     # método da bisseção
-    var = random.randint(0, 2)
+    var = random.randint(0, 3)
     if var == 0:
 
         def f(x):
             return 32 * x**2 - 68 * x + 21
-        
+
     elif var == 1:
-        
+
+        def f(x):
+            return x**2 - x + (6 / 49)
+
+    elif var == 2:
+
         def f(x):
             return np.sin(x) - 0.5
 
