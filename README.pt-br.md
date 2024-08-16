@@ -1,10 +1,10 @@
 # Roda da Vida
-![Tamanho do repositório do GitHub](https://img.shields.io/github/repo-size/joaosnet/wheel-of-Life?style=for-the-badge)
-![Contagem de linguagens do GitHub](https://img.shields.io/github/languages/count/joaosnet/wheel-of-Life?style=for-the-badge)
-![Forks do GitHub](https://img.shields.io/github/forks/joaosnet/wheel-of-Life?style=for-the-badge)
-![Problemas abertos do Bitbucket](https://img.shields.io/bitbucket/issues/joaosnet/wheel-of-Life?style=for-the-badge)
-![Pull requests abertos do Bitbucket](https://img.shields.io/bitbucket/pr-raw/joaosnet/wheel-of-Life?style=for-the-badge)
-[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/joaosnet/wheel-of-Life/blob/master/README.md)
+![Tamanho do repositório do GitHub](https://img.shields.io/github/repo-size/joaosnet/numerical-methods?style=for-the-badge)
+![Contagem de linguagens do GitHub](https://img.shields.io/github/languages/count/joaosnet/numerical-methods?style=for-the-badge)
+![Forks do GitHub](https://img.shields.io/github/forks/joaosnet/numerical-methods?style=for-the-badge)
+![Problemas abertos do Bitbucket](https://img.shields.io/bitbucket/issues/joaosnet/numerical-methods?style=for-the-badge)
+![Pull requests abertos do Bitbucket](https://img.shields.io/bitbucket/pr-raw/joaosnet/numerical-methods?style=for-the-badge)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/joaosnet/numerical-methods/blob/master/README.md)
 
 
 

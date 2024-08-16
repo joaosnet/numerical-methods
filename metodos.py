@@ -12,7 +12,7 @@ class metodos_numericos:
 
     Methods:
         bissecao(): Executa o método da bisseção para encontrar a raiz.
-        get_df(): Retorna o DataFrame(tabela) com os valores intermediários.
+        get_df(): Retorna o DataFrame(Tabela) com os valores intermediários.
         get_iteracoes(): Retorna o número de iterações realizadas.
     """
 
