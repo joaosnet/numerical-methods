@@ -99,7 +99,7 @@ python main.py
 
 ## Capturas de Tela
 
-## 🤝 Contribuidores
+<!-- ## 🤝 Contribuidores
 
 <table>
   <tr>
@@ -112,4 +112,4 @@ python main.py
       </a>
     </td>
   </tr>
-</table>
+</table> -->
