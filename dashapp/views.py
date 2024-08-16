@@ -1,9 +1,9 @@
 # Importando as bibliotecas necessárias
-from dash import html, dcc, Input, Output, State
+from dash import html, dcc, Input, Output, State, dash_table
 from dashapp import app
 
-# from werkzeug.utils import secure_filename
 import numpy as np
+import sympy as sp
 from metodos import metodos_numericos
 
 # Definindo a coluna esquerda
@@ -29,6 +29,8 @@ left_column = html.Div(
                 step=0.5,
                 value=[0, 1],
                 marks={i: str(i) for i in range(-10, 11)},
+                tooltip={"placement": "top", "always_visible": True},
+                pushable=True,
             ),
             html.Br(),
             html.Label("Função:"),
@@ -51,7 +53,7 @@ right_column = html.Div(
         html.Div(
             children=[
                 html.Hr(),
-                dcc.Graph(id="graph"),
+                dcc.Graph(id="graph", mathjax=True),
             ],
         ),
         html.Div(
@@ -117,10 +119,12 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes):
         intervalo[0], intervalo[1], lambda x: eval(funcao), maxiter=interacoes
     )  # Aumenta o número máximo de iterações
     df = mn.get_df()  # Move a definição de df para fora do bloco try/except
+    funcao_sym = sp.sympify(funcao)
+    funcao_latex = sp.latex(funcao_sym)
     try:
         x = Bissecao_obj
         iteracoes = mn.get_iteracoes()
-        resultado = f"A raiz da função {funcao} no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
+        resultado = f"A raiz da função ${funcao_latex}$ no intervalo \[{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
     except RuntimeError as e:
         resultado = (
             f"O método da bisseção não convergiu após {interacoes} iterações. Erro: {e}"
@@ -128,16 +132,19 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes):
 
     return [
         html.H5(children="Método da Bisseção"),  # Título do método
-        html.Div(children=resultado),  # Resultado do método
+        dcc.Markdown(
+            "{resultado}".format(resultado=resultado),
+            mathjax=True,
+            style={"font-size": "14pt"},
+        ),
         html.Hr(),
         html.Div(children="Tabela de Iterações:"),
-        html.Table([
-            html.Thead([html.Tr([html.Th(col) for col in df.columns])]),
-            html.Tbody([
-                html.Tr([html.Td(df.iloc[i][col]) for col in df.columns])
-                for i in range(len(df))
-            ]),
-        ]),
+        dash_table.DataTable(
+            df.to_dict("records"),
+            [{"name": i, "id": i} for i in df.columns],
+            id="table",
+            page_size=10,
+        ),
     ]
 
 
@@ -161,7 +168,8 @@ def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
         intervalo[0], intervalo[1], lambda x: eval(funcao.replace("x", "x"))
     )
     raiz = bissecao
-
+    funcao_sym = sp.sympify(funcao)
+    funcao_latex = sp.latex(funcao_sym)
     return {
         "data": [
             {"x": x, "y": y, "type": "scatter", "name": "Função"},
@@ -174,7 +182,7 @@ def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
             },
         ],
         "layout": {
-            "title": f"Gráfico da função {funcao}",
+            "title": "Gráfico da função ${}$".format(funcao_latex),
             "xaxis": {"title": "x"},
             "yaxis": {"title": "f(x)"},
         },
