@@ -82,10 +82,12 @@ class metodos_numericos:
             fb = f(b, *args)
             x = (a + b) / 2
             fx = f(x, *args)
+            
             if self.iteracoes != 1:
                 erro = abs((x - x_anterior) / x) * 100
             else:
                 erro = None
+                
             self.df.loc[self.iteracoes] = [
                 a,
                 b,
@@ -95,6 +97,7 @@ class metodos_numericos:
                 "positivo" if np.sign(fb) > 0 else "negativo",
                 "positivo" if np.sign(fx) > 0 else "negativo",
             ]
+            
             if abs(b - a) < xtol or abs(fx) < rtol:
                 break
             if fa * fx < 0:
