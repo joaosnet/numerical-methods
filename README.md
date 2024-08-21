@@ -11,7 +11,7 @@
 <img src="screenshots/dash.png"/>
 
 ## Introdução
-
+O site está disponível [aqui](https://numerical-methods-7wxf.onrender.com/)
 ## Habilidades Desenvolvidas
 <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />  
 
