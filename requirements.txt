@@ -4,3 +4,4 @@ pandas
 scipy
 sympy
 gunicorn
+dash-dangerously-set-inner-html
