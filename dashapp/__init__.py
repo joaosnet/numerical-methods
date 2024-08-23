@@ -14,7 +14,12 @@ external_scripts = [
 ]
 
 # Inicializando o aplicativo Dash
-app = Dash(__name__, url_base_pathname="/", external_scripts=external_scripts)
+app = Dash(
+    __name__,
+    title="DashBoard de Métodos Númericos",
+    url_base_pathname="/",
+    external_scripts=external_scripts
+)
 server = app.server
 app.config.suppress_callback_exceptions = True
 

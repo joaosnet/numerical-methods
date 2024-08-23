@@ -1,7 +1,7 @@
 # Importando as bibliotecas necessárias
 from dash import html, dcc, Input, Output, State, dash_table
 from dashapp import app
-
+import dash_dangerously_set_inner_html
 import numpy as np
 import sympy as sp
 from metodos import metodos_numericos
@@ -36,7 +36,16 @@ left_column = html.Div(
             ),
             html.Br(),
             html.Label("Função:"),
-            dcc.Input(id="funcao", type="text", value="np.sin(x) - 0.5"),
+            html.Div([
+                dash_dangerously_set_inner_html.DangerouslySetInnerHTML("""
+                        <math-field>f(x) = \sin(x) - 0.5</math-field>
+            """),
+            ], id="math-field"),
+            dcc.Input(
+                id="funcao",
+                type="text",
+                value="np.sin(x) - 0.5",
+            ),
             html.Hr(),
             html.Br(),
             html.Label("Interações:"),
@@ -108,6 +117,13 @@ def carregar_pagina(pathname):
     if pathname == "/":
         return layout_dashboard
 
+# teste do math-field
+@app.callback(
+    Input("calcular-bissecao", "n_clicks"),
+    Input("math-field", "children"),
+)
+def atualizar_funcao(n_clicks, math_field):
+    print(math_field)
 
 # Calculando a bisseção
 @app.callback(
@@ -123,7 +139,11 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
     mn = metodos_numericos()
     # tratando a função que está em string para uma função que o python entenda
     Bissecao_obj = mn.bissecao(
-        intervalo[0], intervalo[1], lambda x: eval(funcao), maxiter=interacoes, tol=tolerancia
+        intervalo[0],
+        intervalo[1],
+        lambda x: eval(funcao),
+        maxiter=interacoes,
+        tol=tolerancia,
     )  # Aumenta o número máximo de iterações
     df = mn.get_df()  # Move a definição de df para fora do bloco try/except
     try:
