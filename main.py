@@ -11,5 +11,5 @@ if __name__ == "__main__":
     elif mode == "1":
         app.run_server(debug=False, host="0.0.0.0")
     else:
-        print("DEBUG não definido.")
-        app.run_server(debug=False, host="0.0.0.0")
+        print("Variavel Ambiente DEBUG não definida.")
+        app.run_server()

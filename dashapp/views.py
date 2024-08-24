@@ -10,7 +10,42 @@ from metodos import metodos_numericos
 # Definindo o estilo da tabela de dados
 DATA_TABLE_STYLE = {
     "style_data_conditional": [
-        {"if": {"column_id": "Finish"}, "backgroundColor": "#eee"}
+        {
+            "if": {"filter_query": "{Sinal a} = negativo", "column_id": "a"},
+            "backgroundColor": "#800000",
+            "color": "white",
+        },
+        {
+            "if": {"filter_query": "{Sinal a} = positivo", "column_id": "a"},
+            "backgroundColor": "#ADD8E6",  # Azul claro
+            "color": "black",
+        },
+        {
+            "if": {"filter_query": "{Sinal b} = negativo", "column_id": "b"},
+            "backgroundColor": "#800000",
+            "color": "white",
+        },
+        {
+            "if": {"filter_query": "{Sinal b} = positivo", "column_id": "b"},
+            "backgroundColor": "#ADD8E6",  # Azul claro
+            "color": "black",
+        },
+        {
+            "if": {
+                "filter_query": "{Sinal x} = negativo",
+                "column_id": "Aproximação da Raiz",
+            },
+            "backgroundColor": "#800000",
+            "color": "white",
+        },
+        {
+            "if": {
+                "filter_query": "{Sinal x} = positivo",
+                "column_id": "Aproximação da Raiz",
+            },
+            "backgroundColor": "#ADD8E6",  # Azul claro
+            "color": "black",
+        },
     ],
     "style_header": {
         "color": "white",
@@ -233,46 +268,6 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
             f"O método da bisseção não convergiu após {interacoes} iterações. Erro: {e}"
         )
 
-    # adicionar a colunas de sinal em outra tabela
-    df1 = df.copy()
-    df1 = df1.drop(columns=["a","b","Aproximação da Raiz","Erro Relativo (%)"])
-    # Remover as colunas de sinal
-    df = df.drop(columns=["Sinal a", "Sinal b", "Sinal x"])
-
-    # Estilos condicionais para colorir as células
-    style_data_conditional = [
-        {
-            "if": {"filter_query": "{a} < 0", "column_id": "a"},
-            "backgroundColor": "red",
-            "color": "white",
-        },
-        {
-            "if": {"filter_query": "{a} >= 0", "column_id": "a"},
-            "backgroundColor": "#ADD8E6",  # Azul claro
-            "color": "black",
-        },
-        {
-            "if": {"filter_query": "{b} < 0", "column_id": "b"},
-            "backgroundColor": "red",
-            "color": "white",
-        },
-        {
-            "if": {"filter_query": "{b} >= 0", "column_id": "b"},
-            "backgroundColor": "#ADD8E6",  # Azul claro
-            "color": "black",
-        },
-        {
-            "if": {"filter_query": "{Aproximação da Raiz} < 0", "column_id": "Aproximação da Raiz"},
-            "backgroundColor": "red",
-            "color": "white",
-        },
-        {
-            "if": {"filter_query": "{Aproximação da Raiz} >= 0", "column_id": "Aproximação da Raiz"},
-            "backgroundColor": "#ADD8E6",  # Azul claro
-            "color": "black",
-        },
-    ]
-
     return [
         html.H5(children="Método da Bisseção"),  # Título do método
         dcc.Markdown(
@@ -284,7 +279,8 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
         html.Div(children="Tabela de Iterações:"),
         dash_table.DataTable(
             df.to_dict("records"),
-            [{"name": i, "id": i} for i in df.columns],
+            [{"name": i, "id": i, "hideable":True} for i in df.columns],
+            hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
             id="table",
             sort_action="native",
             style_table={"height": "300px", "overflowY": "auto"},
@@ -298,7 +294,7 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
             css=DATA_TABLE_STYLE.get("css"),
             page_size=10,
             row_deletable=True,
-            style_data_conditional=style_data_conditional,
+            style_data_conditional=DATA_TABLE_STYLE.get("style_data_conditional"),
             style_header=DATA_TABLE_STYLE.get("style_header"),
         ),
     ]
