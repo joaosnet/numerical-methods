@@ -7,6 +7,25 @@ import sympy as sp
 from sympy.parsing.latex import parse_latex
 from metodos import metodos_numericos
 
+# Definindo o estilo da tabela de dados
+DATA_TABLE_STYLE = {
+    "style_data_conditional": [
+        {"if": {"column_id": "Finish"}, "backgroundColor": "#eee"}
+    ],
+    "style_header": {
+        "color": "white",
+        "backgroundColor": "#799DBF",
+        "fontWeight": "bold",
+    },
+    "css": [
+        {
+            "selector": ".Select-value",
+            "rule": "padding-right: 22px",
+        },  # makes space for the dropdown caret
+        {"selector": ".dropdown", "rule": "position: static"},  # makes dropdown visible
+    ],
+}
+
 # Definindo a coluna esquerda
 left_column = html.Div(
     id="left-column",
@@ -20,61 +39,67 @@ left_column = html.Div(
         html.Div(
             children="""Adicione um intervalo e uma função para visualizar o método da bisseção:"""
         ),
-        html.Div([
-            html.Label("Intervalo:"),
-            html.Br(),
-            html.Div(
-                [
-                    dcc.Input(id="min-value", type="number", value=-2),
-                    dcc.RangeSlider(
-                        id="intervalo",
-                        min=-2,
-                        max=5,
-                        step=0.1,
-                        value=[0, 1],
-                        marks={i: str(i) for i in range(-10, 11)},
-                        tooltip={"placement": "top", "always_visible": True},
-                        pushable=True,
-                        # definindo o tamanho do slider
-                        updatemode="drag",
-                        allowCross=False,
-                    ),
-                    dcc.Input(id="max-value", type="number", value=5),
-                ],
-                style={"display": "grid", "grid-template-columns": r"15% 80% 15%"},
-            ),
-            html.Br(),
-            html.Label("Função:"),
-            html.Div(
-                [
-                    dash_dangerously_set_inner_html.DangerouslySetInnerHTML(r"""
+        html.Div(
+            children=[
+                html.Label("Intervalo:"),
+            ]
+        ),
+        html.Br(),
+        html.Div(
+            [
+                html.Br(),
+                dcc.Input(id="min-value", type="number", value=-2),
+                dcc.RangeSlider(
+                    id="intervalo",
+                    min=-2,
+                    max=5,
+                    step=0.1,
+                    value=[0, 1],
+                    marks={i: str(i) for i in range(-10, 11)},
+                    tooltip={"placement": "top", "always_visible": True},
+                    pushable=True,
+                    # definindo o tamanho do slider
+                    updatemode="drag",
+                    allowCross=False,
+                ),
+                dcc.Input(id="max-value", type="number", value=5),
+                # html.Br(),
+            ],
+            style={
+                "display": "grid",
+                "grid-template-columns": r"10% 10% 60% 10%",
+                "align-items": "center",
+            },
+        ),
+        html.Br(),
+        html.Label("Função:"),
+        html.Div(
+            [
+                dash_dangerously_set_inner_html.DangerouslySetInnerHTML(r"""
                         <math-field id="mathlive-input" placeholder="e.g. x^2 - 2">\exponentialE^{-x}-x</math-field>
                     """),
-                ],
-                id="mathlive-container",
-            ),
-            html.Label("Confirme abaixo se a função está correta apertando espaço:"),
-            dcc.Input(
-                id="funcao",
-                type="text",
-                value=r"\exponentialE^{-x}-x",
-            ),
-            html.Hr(),
-            html.Br(),
-            html.Label("Interações:"),
-            dcc.Input(
-                id="interacoes", type="number", value=100, min=3, max=100, step=1
-            ),
-            html.Hr(),
-            html.Br(),
-            html.Label("Tolerância:"),
-            dcc.Input(
-                id="tolerancia", type="number", value=1e-18, min=1e-18, max=100, step=1
-            ),
-            html.Hr(),
-            html.Br(),
-            html.Button("Calcular", id="calcular-bissecao", n_clicks=0),
-        ]),
+            ],
+            id="mathlive-container",
+        ),
+        html.Label("Confirme abaixo se a função está correta apertando espaço:"),
+        dcc.Input(
+            id="funcao",
+            type="text",
+            value=r"\exponentialE^{-x}-x",
+        ),
+        html.Hr(),
+        html.Br(),
+        html.Label("Interações:"),
+        dcc.Input(id="interacoes", type="number", value=100, min=3, max=100, step=1),
+        html.Hr(),
+        html.Br(),
+        html.Label("Tolerância:"),
+        dcc.Input(
+            id="tolerancia", type="number", value=1e-18, min=1e-18, max=100, step=1
+        ),
+        html.Hr(),
+        html.Br(),
+        html.Button("Calcular", id="calcular-bissecao", n_clicks=0),
     ],  # Descrição do aplicativo
 )
 
@@ -208,6 +233,46 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
             f"O método da bisseção não convergiu após {interacoes} iterações. Erro: {e}"
         )
 
+    # adicionar a colunas de sinal em outra tabela
+    df1 = df.copy()
+    df1 = df1.drop(columns=["a","b","Aproximação da Raiz","Erro Relativo (%)"])
+    # Remover as colunas de sinal
+    df = df.drop(columns=["Sinal a", "Sinal b", "Sinal x"])
+
+    # Estilos condicionais para colorir as células
+    style_data_conditional = [
+        {
+            "if": {"filter_query": "{a} < 0", "column_id": "a"},
+            "backgroundColor": "red",
+            "color": "white",
+        },
+        {
+            "if": {"filter_query": "{a} >= 0", "column_id": "a"},
+            "backgroundColor": "#ADD8E6",  # Azul claro
+            "color": "black",
+        },
+        {
+            "if": {"filter_query": "{b} < 0", "column_id": "b"},
+            "backgroundColor": "red",
+            "color": "white",
+        },
+        {
+            "if": {"filter_query": "{b} >= 0", "column_id": "b"},
+            "backgroundColor": "#ADD8E6",  # Azul claro
+            "color": "black",
+        },
+        {
+            "if": {"filter_query": "{Aproximação da Raiz} < 0", "column_id": "Aproximação da Raiz"},
+            "backgroundColor": "red",
+            "color": "white",
+        },
+        {
+            "if": {"filter_query": "{Aproximação da Raiz} >= 0", "column_id": "Aproximação da Raiz"},
+            "backgroundColor": "#ADD8E6",  # Azul claro
+            "color": "black",
+        },
+    ]
+
     return [
         html.H5(children="Método da Bisseção"),  # Título do método
         dcc.Markdown(
@@ -221,7 +286,20 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
             df.to_dict("records"),
             [{"name": i, "id": i} for i in df.columns],
             id="table",
+            sort_action="native",
+            style_table={"height": "300px", "overflowY": "auto"},
+            editable=False,
+            dropdown={
+                "Resource": {
+                    "clearable": False,
+                    "options": [{"label": i, "value": i} for i in ["A", "B", "C", "D"]],
+                },
+            },
+            css=DATA_TABLE_STYLE.get("css"),
             page_size=10,
+            row_deletable=True,
+            style_data_conditional=style_data_conditional,
+            style_header=DATA_TABLE_STYLE.get("style_header"),
         ),
     ]
 
