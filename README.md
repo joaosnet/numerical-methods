@@ -95,7 +95,10 @@ poetry install
 ```bash
 python main.py
 ```
-
+11. Para criar o arquivo requirements.txt
+```bash
+poetry export --without-hashes --without-urls --without dev -f requirements.txt -o requirements.txt
+```
 
 ## Capturas de Tela
 
