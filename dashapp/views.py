@@ -260,6 +260,7 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
         funcao,
         maxiter=interacoes,
         tol=tolerancia,
+        disp=False,
     )  # Aumenta o número máximo de iterações
     df = mn.get_df()  # Move a definição de df para fora do bloco try/except
     funcao_latex1 = funcao_latex(funcao_simbolica)
@@ -273,7 +274,9 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
         )
 
     return [
-        html.H5(children="Tabela de interções usando Método da Bisseção"),  # Título do método
+        html.H5(
+            children="Tabela de interções usando Método da Bisseção"
+        ),  # Título do método
         dcc.Markdown(
             "{resultado}".format(resultado=resultado),
             mathjax=True,
@@ -335,7 +338,9 @@ def calcular_false_position(n_clicks, intervalo, funcao, interacoes, tolerancia)
         resultado = f"O método da falsa posição não convergiu após {interacoes} iterações. Erro: {e}"
 
     return [
-        html.H5(children="Tabela de interções usando Método da falsa posição ou interpolação"),  # Título do método
+        html.H5(
+            children="Tabela de interções usando Método da falsa posição ou interpolação"
+        ),  # Título do método
         dcc.Markdown(
             "{resultado}".format(resultado=resultado),
             mathjax=True,
@@ -383,7 +388,13 @@ def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
     y = funcao(x)
 
     # Calcular a raiz usando o método da bisseção
-    bissecao = mn.bissecao(intervalo[0], intervalo[1], funcao, maxiter=interacoes)
+    bissecao = mn.bissecao(
+        intervalo[0],
+        intervalo[1],
+        funcao,
+        maxiter=interacoes,
+        disp=False,
+    )
     raiz = bissecao
     falsa_posicao_raiz = mn.falsaposicao_modificada(
         intervalo[0], intervalo[1], funcao, imax=interacoes

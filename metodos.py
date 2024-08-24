@@ -70,7 +70,7 @@ class metodos_numericos:
         x_anterior = None
         while abs(b - a) > tol:
             self.iteracoes += 1
-            if self.iteracoes > maxiter:
+            if self.iteracoes >= maxiter:
                 if disp:
                     raise RuntimeError(
                         "Falha ao convergir após %d iterações, valor é %s"
