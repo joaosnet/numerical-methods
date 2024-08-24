@@ -109,6 +109,55 @@ class metodos_numericos:
             return x, self.df
         else:
             return x
+    
+    def falsaposicao_modificada(self, xl, xu, f, es=0.0001, imax=50):
+        iter = 0
+        fl = f(xl)
+        fu = f(xu)
+        xr = xl
+        ea = 100
+        il = 0
+        iu = 0
+
+        while ea > es and iter < imax:
+            xrold = xr
+            xr = xu - fu * (xl - xu) / (fl - fu)
+            fr = f(xr)
+            iter += 1
+
+            if xr != 0:
+                ea = abs((xr - xrold) / xr) * 100
+
+            test = fl * fr
+
+            if test < 0:
+                xu = xr
+                fu = f(xu)
+                iu = 0
+                il += 1
+                if il >= 2:
+                    fl /= 2
+            elif test > 0:
+                xl = xr
+                fl = f(xl)
+                il = 0
+                iu += 1
+                if iu >= 2:
+                    fu /= 2
+            else:
+                ea = 0
+            self.iteracoes = iter
+            self.df.loc[iter] = [
+                xl,
+                xu,
+                xr,
+                ea if ea is not None else "-",
+                "positivo" if np.sign(fl) > 0 else "negativo",
+                "positivo" if np.sign(fu) > 0 else "negativo",
+                "positivo" if np.sign(fr) > 0 else "negativo",
+            ]
+
+        return xr
 
     def get_df(self):
         """

@@ -153,6 +153,10 @@ right_column = html.Div(
             id="tabs",
             children=[],
         ),
+        html.Div(
+            id="falsap-container",
+            children=[],
+        ),
     ],
 )
 
@@ -269,7 +273,7 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
         )
 
     return [
-        html.H5(children="Método da Bisseção"),  # Título do método
+        html.H5(children="Tabela de interções usando Método da Bisseção"),  # Título do método
         dcc.Markdown(
             "{resultado}".format(resultado=resultado),
             mathjax=True,
@@ -279,7 +283,69 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
         html.Div(children="Tabela de Iterações:"),
         dash_table.DataTable(
             df.to_dict("records"),
-            [{"name": i, "id": i, "hideable":True} for i in df.columns],
+            [{"name": i, "id": i, "hideable": True} for i in df.columns],
+            hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
+            id="table",
+            sort_action="native",
+            style_table={"height": "300px", "overflowY": "auto"},
+            editable=False,
+            dropdown={
+                "Resource": {
+                    "clearable": False,
+                    "options": [{"label": i, "value": i} for i in ["A", "B", "C", "D"]],
+                },
+            },
+            css=DATA_TABLE_STYLE.get("css"),
+            page_size=10,
+            row_deletable=True,
+            style_data_conditional=DATA_TABLE_STYLE.get("style_data_conditional"),
+            style_header=DATA_TABLE_STYLE.get("style_header"),
+        ),
+    ]
+
+
+# Chamada para calcular o Método da Falsa Posição
+@app.callback(
+    Output("falsap-container", "children"),
+    Input("calcular-bissecao", "n_clicks"),
+    State("intervalo", "value"),
+    State("funcao", "value"),
+    State("interacoes", "value"),
+    State("tolerancia", "value"),
+)
+def calcular_false_position(n_clicks, intervalo, funcao, interacoes, tolerancia):
+    funcao, funcao_simbolica = tratar_funcao(funcao)
+    # inicializando a classe metodos_numericos
+    mn = metodos_numericos()
+    # tratando a função que está em string para uma função que o python entenda
+    falsaposicao_obj = mn.falsaposicao_modificada(
+        intervalo[0],
+        intervalo[1],
+        funcao,
+        imax=interacoes,
+        es=tolerancia,
+    )  # Aumenta o número máximo de iterações
+    df = mn.get_df()  # Move a definição de df para fora do bloco try/except
+    funcao_latex1 = funcao_latex(funcao_simbolica)
+    try:
+        x = falsaposicao_obj
+        iteracoes = mn.get_iteracoes()
+        resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
+    except RuntimeError as e:
+        resultado = f"O método da falsa posição não convergiu após {interacoes} iterações. Erro: {e}"
+
+    return [
+        html.H5(children="Tabela de interções usando Método da falsa posição ou interpolação"),  # Título do método
+        dcc.Markdown(
+            "{resultado}".format(resultado=resultado),
+            mathjax=True,
+            style={"font-size": "14pt"},
+        ),
+        html.Hr(),
+        html.Div(children="Tabela de Iterações:"),
+        dash_table.DataTable(
+            df.to_dict("records"),
+            [{"name": i, "id": i, "hideable": True} for i in df.columns],
             hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
             id="table",
             sort_action="native",
@@ -317,8 +383,11 @@ def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
     y = funcao(x)
 
     # Calcular a raiz usando o método da bisseção
-    bissecao = mn.bissecao(intervalo[0], intervalo[1], funcao)
+    bissecao = mn.bissecao(intervalo[0], intervalo[1], funcao, maxiter=interacoes)
     raiz = bissecao
+    falsa_posicao_raiz = mn.falsaposicao_modificada(
+        intervalo[0], intervalo[1], funcao, imax=interacoes
+    )
     funcao_latex1 = funcao_latex(funcao_simbolica)
     return {
         "data": [
@@ -327,8 +396,15 @@ def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
                 "x": [raiz],
                 "y": [0],
                 "mode": "markers",
-                "name": "Raiz",
+                "name": "Raiz Bisseção",
                 "marker": {"size": 10, "color": "red"},
+            },
+            {
+                "x": [falsa_posicao_raiz],
+                "y": [0],
+                "mode": "markers",
+                "name": "Raiz Falsa Posição",
+                "marker": {"size": 10, "color": "green"},
             },
         ],
         "layout": {
