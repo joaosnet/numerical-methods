@@ -19,7 +19,7 @@ antlr4-python3-runtime = "4.11"
 pytest-env = "^1.1.3"
 
 [tool.pytest_env]
-DEBUG = "0"
+DEBUG = "1"
 
 [build-system]
 requires = ["poetry-core"]
