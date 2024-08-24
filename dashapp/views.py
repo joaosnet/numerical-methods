@@ -23,17 +23,25 @@ left_column = html.Div(
         html.Div([
             html.Label("Intervalo:"),
             html.Br(),
-            dcc.RangeSlider(
-                id="intervalo",
-                min=-2,
-                max=5,
-                step=0.1,
-                value=[0, 1],
-                marks={i: str(i) for i in range(-10, 11)},
-                tooltip={"placement": "top", "always_visible": True},
-                pushable=True,
-                # definindo o tamanho do slider
-                updatemode="drag",
+            html.Div(
+                [
+                    dcc.Input(id="min-value", type="number", value=-2),
+                    dcc.RangeSlider(
+                        id="intervalo",
+                        min=-2,
+                        max=5,
+                        step=0.1,
+                        value=[0, 1],
+                        marks={i: str(i) for i in range(-10, 11)},
+                        tooltip={"placement": "top", "always_visible": True},
+                        pushable=True,
+                        # definindo o tamanho do slider
+                        updatemode="drag",
+                        allowCross=False,
+                    ),
+                    dcc.Input(id="max-value", type="number", value=5),
+                ],
+                style={"display": "grid", "grid-template-columns": r"15% 80% 15%"},
             ),
             html.Br(),
             html.Label("Função:"),
@@ -114,6 +122,17 @@ app.layout = html.Div([
     ),
     html.Div(id="conteudo_pagina"),
 ])
+
+
+# Callback para atualizar o RangeSlider com base nos inputs
+@app.callback(
+    Output("intervalo", "min"),
+    Output("intervalo", "max"),
+    Input("min-value", "value"),
+    Input("max-value", "value"),
+)
+def update_rangeslider(min_value, max_value):
+    return min_value, max_value
 
 
 # Função para tratar da funcao recebida do math-input
