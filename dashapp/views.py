@@ -4,6 +4,7 @@ from dashapp import app
 import dash_dangerously_set_inner_html
 import numpy as np
 import sympy as sp
+from sympy.parsing.latex import parse_latex
 from metodos import metodos_numericos
 
 # Definindo a coluna esquerda
@@ -36,15 +37,19 @@ left_column = html.Div(
             ),
             html.Br(),
             html.Label("Função:"),
-            html.Div([
-                dash_dangerously_set_inner_html.DangerouslySetInnerHTML("""
-                        <math-field>f(x) = \sin(x) - 0.5</math-field>
-            """),
-            ], id="math-field"),
+            html.Div(
+                [
+                    dash_dangerously_set_inner_html.DangerouslySetInnerHTML(r"""
+                        <math-field id="mathlive-input" placeholder="e.g. x^2 - 2">\exponentialE^{-x}-x</math-field>
+                    """),
+                ],
+                id="mathlive-container",
+            ),
+            html.Label("Confirme abaixo se a função está correta apertando espaço:"),
             dcc.Input(
                 id="funcao",
                 type="text",
-                value="np.sin(x) - 0.5",
+                value=r"\exponentialE^{-x}-x",
             ),
             html.Hr(),
             html.Br(),
@@ -111,19 +116,46 @@ app.layout = html.Div([
 ])
 
 
+# Função para tratar da funcao recebida do math-input
+def tratar_funcao(funcao):
+    try:
+        x = sp.symbols("x")
+
+        # Expressão em LaTeX
+        expressao_latex = funcao
+
+        if r"\exponentialE" in expressao_latex:
+            expressao_latex = expressao_latex.replace(r"\exponentialE", r"\exp\left")
+            # Corrigir os parênteses
+            expressao_latex = expressao_latex.replace(r"^{-", r"(-")
+            expressao_latex = expressao_latex.replace(r"}", r"\right)")
+
+        # Convertendo a expressão LaTeX para uma expressão simbólicaS
+        expressao_simbolica = parse_latex(expressao_latex)
+
+        # Convertendo a expressão simbólica para uma função lambda do Python
+        funcao_lambda = sp.lambdify(x, expressao_simbolica, "numpy")
+        return funcao_lambda, expressao_simbolica
+    except Exception as e:
+        print(f"Erro ao tratar a função: {e}")
+        return lambda x: eval(funcao)
+
+
+def funcao_latex(expressao_simbolica):
+    try:
+        funcao_latex = sp.latex(expressao_simbolica)
+    except Exception as e:
+        print(f"Erro ao converter para LaTeX: {e}")
+        funcao_latex = str(expressao_simbolica)
+    return funcao_latex
+
+
 # pathname
 @app.callback(Output("conteudo_pagina", "children"), Input("url", "pathname"))
 def carregar_pagina(pathname):
     if pathname == "/":
         return layout_dashboard
 
-# teste do math-field
-@app.callback(
-    Input("calcular-bissecao", "n_clicks"),
-    Input("math-field", "children"),
-)
-def atualizar_funcao(n_clicks, math_field):
-    print(math_field)
 
 # Calculando a bisseção
 @app.callback(
@@ -135,26 +167,23 @@ def atualizar_funcao(n_clicks, math_field):
     State("tolerancia", "value"),
 )
 def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
+    funcao, funcao_simbolica = tratar_funcao(funcao)
     # inicializando a classe metodos_numericos
     mn = metodos_numericos()
     # tratando a função que está em string para uma função que o python entenda
     Bissecao_obj = mn.bissecao(
         intervalo[0],
         intervalo[1],
-        lambda x: eval(funcao),
+        funcao,
         maxiter=interacoes,
         tol=tolerancia,
     )  # Aumenta o número máximo de iterações
     df = mn.get_df()  # Move a definição de df para fora do bloco try/except
-    try:
-        funcao_sym = sp.sympify(funcao)
-        funcao_latex = sp.latex(funcao_sym)
-    except:  # noqa: E722
-        funcao_latex = funcao
+    funcao_latex1 = funcao_latex(funcao_simbolica)
     try:
         x = Bissecao_obj
         iteracoes = mn.get_iteracoes()
-        resultado = f"A raiz da função ${funcao_latex}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
+        resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
     except RuntimeError as e:
         resultado = (
             f"O método da bisseção não convergiu após {interacoes} iterações. Erro: {e}"
@@ -187,22 +216,17 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
     State("interacoes", "value"),
 )
 def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
+    funcao, funcao_simbolica = tratar_funcao(funcao)
     # inicializando a classe metodos_numericos
     mn = metodos_numericos()
     # tratando a função que está em string para uma função que o python entenda
     x = np.linspace(intervalo[0], intervalo[1], 100)
-    y = eval(funcao.replace("x", "x"))
+    y = funcao(x)
 
     # Calcular a raiz usando o método da bisseção
-    bissecao = mn.bissecao(
-        intervalo[0], intervalo[1], lambda x: eval(funcao.replace("x", "x"))
-    )
+    bissecao = mn.bissecao(intervalo[0], intervalo[1], funcao)
     raiz = bissecao
-    try:
-        funcao_sym = sp.sympify(funcao)
-        funcao_latex = sp.latex(funcao_sym)
-    except:  # noqa: E722
-        funcao_latex = funcao
+    funcao_latex1 = funcao_latex(funcao_simbolica)
     return {
         "data": [
             {"x": x, "y": y, "type": "scatter", "name": "Função"},
@@ -215,8 +239,29 @@ def atualizar_grafico(n_clicks, intervalo, funcao, interacoes):
             },
         ],
         "layout": {
-            "title": "Gráfico da função ${}$".format(funcao_latex),
+            "title": "Gráfico da função ${}$".format(funcao_latex1),
             "xaxis": {"title": "x"},
             "yaxis": {"title": "f(x)"},
         },
     }
+
+
+# Callback client-side para atualizar o valor do input 'funcao' com o valor do 'math-field'
+app.clientside_callback(
+    """
+    function(children) {
+        const mathField = document.getElementById('mathlive-input');
+        if (mathField) {
+            mathField.addEventListener('input', () => {
+                const input = document.getElementById('funcao');
+                if (input) {
+                    input.value = mathField.getValue('latex');
+                }
+            });
+        }
+        return children;
+    }
+    """,
+    Output("mathlive-container", "children"),
+    Input("mathlive-container", "children"),
+)
