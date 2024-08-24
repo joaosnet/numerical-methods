@@ -11,4 +11,4 @@ if __name__ == "__main__":
     elif mode == 1:
         app.run_server(debug=False, host="0.0.0.0")
     else:
-        app.run_server(debug=True)
+        app.run_server(debug=False, host="0.0.0.0")
