@@ -16,6 +16,10 @@ dash-dangerously-set-inner-html = "^0.0.2"
 antlr4-python3-runtime = "4.11"
 
 [tool.poetry.group.dev.dependencies]
+pytest-env = "^1.1.3"
+
+[tool.pytest_env]
+DEBUG = "0"
 
 [build-system]
 requires = ["poetry-core"]
