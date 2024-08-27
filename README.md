@@ -4,7 +4,7 @@
 ![Forks do GitHub](https://img.shields.io/github/forks/joaosnet/numerical-methods?style=for-the-badge)
 ![Problemas abertos do Bitbucket](https://img.shields.io/bitbucket/issues/joaosnet/numerical-methods?style=for-the-badge)
 ![Pull requests abertos do Bitbucket](https://img.shields.io/bitbucket/pr-raw/joaosnet/numerical-methods?style=for-the-badge)
-[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/joaosnet/numerical-methods/blob/master/README.md)
+[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/joaosnet/numerical-methods/blob/master/README.pt-br.md)
 
 
 
