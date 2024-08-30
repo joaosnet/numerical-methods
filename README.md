@@ -2,8 +2,6 @@
 ![Tamanho do repositório do GitHub](https://img.shields.io/github/repo-size/joaosnet/numerical-methods?style=for-the-badge)
 ![Contagem de linguagens do GitHub](https://img.shields.io/github/languages/count/joaosnet/numerical-methods?style=for-the-badge)
 ![Forks do GitHub](https://img.shields.io/github/forks/joaosnet/numerical-methods?style=for-the-badge)
-![Problemas abertos do Bitbucket](https://img.shields.io/bitbucket/issues/joaosnet/numerical-methods?style=for-the-badge)
-![Pull requests abertos do Bitbucket](https://img.shields.io/bitbucket/pr-raw/joaosnet/numerical-methods?style=for-the-badge)
 [![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/joaosnet/numerical-methods/blob/master/README.pt-br.md)
 
 
