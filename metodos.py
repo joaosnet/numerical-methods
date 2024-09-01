@@ -82,14 +82,7 @@ class metodos_numericos:
         x_anterior = None
         while abs(b - a) > tol:
             iteracoes += 1
-            if iteracoes >= maxiter:
-                if disp:
-                    raise RuntimeError(
-                        "Falha ao convergir após %d iterações, valor é %s"
-                        % (maxiter, x)
-                    )
-                else:
-                    return x
+            
             fa = f(a, *args)
             fb = f(b, *args)
             x = (a + b) / 2
@@ -117,6 +110,17 @@ class metodos_numericos:
             else:
                 a = x
             x_anterior = x
+            if iteracoes >= maxiter:
+                if disp:
+                    raise RuntimeError(
+                        "Falha ao convergir após %d iterações, valor é %s"
+                        % (maxiter, x)
+                    )
+                else:
+                    if full_output:
+                        return x, df, iteracoes
+                    else:
+                        return x
             
         self.iteracoes = iter
         self.df = df

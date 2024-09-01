@@ -12,44 +12,6 @@ import plotly.graph_objects as go
 
 # Definindo o estilo da tabela de dados
 DATA_TABLE_STYLE = {
-    "style_data_conditional": [
-        {
-            "if": {"filter_query": "{Sinal a} = negativo", "column_id": "a"},
-            "backgroundColor": "#800000",
-            "color": "white",
-        },
-        {
-            "if": {"filter_query": "{Sinal a} = positivo", "column_id": "a"},
-            "backgroundColor": "#ADD8E6",  # Azul claro
-            "color": "black",
-        },
-        {
-            "if": {"filter_query": "{Sinal b} = negativo", "column_id": "b"},
-            "backgroundColor": "#800000",
-            "color": "white",
-        },
-        {
-            "if": {"filter_query": "{Sinal b} = positivo", "column_id": "b"},
-            "backgroundColor": "#ADD8E6",  # Azul claro
-            "color": "black",
-        },
-        {
-            "if": {
-                "filter_query": "{Sinal x} = negativo",
-                "column_id": "Aproximação da Raiz",
-            },
-            "backgroundColor": "#800000",
-            "color": "white",
-        },
-        {
-            "if": {
-                "filter_query": "{Sinal x} = positivo",
-                "column_id": "Aproximação da Raiz",
-            },
-            "backgroundColor": "#ADD8E6",  # Azul claro
-            "color": "black",
-        },
-    ],
     "style_header": {
         "color": "white",
         "backgroundColor": "#799DBF",
@@ -237,7 +199,7 @@ navbar = (
         h="100%",
         w="100%",
         offsetScrollbars=True,
-        type="auto",
+        type="scroll",
     ),
 )
 
@@ -259,7 +221,7 @@ appshell = dmc.AppShell(
     header={"height": 70},
     padding="xl",
     navbar={
-        "width": 500,
+        "width": 800,
         "breakpoint": "md",
         "collapsed": {"mobile": True},
     },
@@ -342,10 +304,25 @@ def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
         )  # Aumenta o número máximo de iterações
         funcao_latex1 = funcao_latex(funcao_simbolica)
         resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
-    except RuntimeError as e:
-        resultado = (
-            f"O método da bisseção não convergiu após {interacoes} iterações. Erro: {e}"
+
+        # renomeando os cabeçalhos das colunas
+        df = df.rename(
+            columns={
+                "a": "Limite Inferior (xl)",
+                "b": "Limite Superior (xu)",
+                "Aproximação da Raiz": "Aproximação da Raiz (xr)",
+                "Erro Relativo (%)": "Erro Relativo (%)",
+                "Sinal a": "Sinal a",
+                "Sinal b": "Sinal b",
+                "Sinal x": "Sinal x",
+            }
         )
+
+        # adicionando a coluna da iteração como a primeira coluna
+        df.insert(0, "Iteração", range(1, len(df) + 1))
+
+    except:
+        resultado = f"O método da bisseção não convergiu após {interacoes} iterações."
 
     return [
         html.H5(
@@ -375,7 +352,56 @@ def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
             css=DATA_TABLE_STYLE.get("css"),
             page_size=10,
             row_deletable=True,
-            style_data_conditional=DATA_TABLE_STYLE.get("style_data_conditional"),
+            style_data_conditional=[
+                {
+                    "if": {
+                        "filter_query": "{Sinal a} = negativo",
+                        "column_id": "Limite Inferior (xl)",
+                    },
+                    "backgroundColor": "#800000",
+                    "color": "white",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal a} = positivo",
+                        "column_id": "Limite Inferior (xl)",
+                    },
+                    "backgroundColor": "#ADD8E6",  # Azul claro
+                    "color": "black",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal b} = negativo",
+                        "column_id": "Limite Superior (xu)",
+                    },
+                    "backgroundColor": "#800000",
+                    "color": "white",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal b} = positivo",
+                        "column_id": "Limite Superior (xu)",
+                    },
+                    "backgroundColor": "#ADD8E6",  # Azul claro
+                    "color": "black",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal x} = negativo",
+                        "column_id": "Aproximação da Raiz (xr)",
+                    },
+                    "backgroundColor": "#800000",
+                    "color": "white",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal x} = positivo",
+                        "column_id": "Aproximação da Raiz (xr)",
+                    },
+                    "backgroundColor": "#ADD8E6",  # Azul claro
+                    "color": "black",
+                },
+            ],
             style_header=DATA_TABLE_STYLE.get("style_header"),
         ),
     ]
@@ -399,6 +425,22 @@ def calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia):
         )  # Aumenta o número máximo de iterações
         funcao_latex1 = funcao_latex(funcao_simbolica)
         resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {falsaposicao_raiz} com {iteracoes} iterações."
+
+        # renomeando os cabeçalhos das colunas
+        df = df.rename(
+            columns={
+                "a": "Limite Inferior (xl)",
+                "b": "Limite Superior (xu)",
+                "Aproximação da Raiz": "Aproximação da Raiz (xr)",
+                "Erro Relativo (%)": "Erro Relativo (%)",
+                "Sinal a": "Sinal a",
+                "Sinal b": "Sinal b",
+                "Sinal x": "Sinal x",
+            }
+        )
+
+        # adicionando a coluna da iteração como a primeira coluna
+        df.insert(0, "Iteração", range(1, len(df) + 1))
     except:  # noqa: E722
         resultado = (
             f"O método da falsa posição não convergiu após {interacoes} iterações."
@@ -432,7 +474,56 @@ def calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia):
             css=DATA_TABLE_STYLE.get("css"),
             page_size=10,
             row_deletable=True,
-            style_data_conditional=DATA_TABLE_STYLE.get("style_data_conditional"),
+            style_data_conditional=[
+                {
+                    "if": {
+                        "filter_query": "{Sinal a} = negativo",
+                        "column_id": "Limite Inferior (xl)",
+                    },
+                    "backgroundColor": "#800000",
+                    "color": "white",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal a} = positivo",
+                        "column_id": "Limite Inferior (xl)",
+                    },
+                    "backgroundColor": "#ADD8E6",  # Azul claro
+                    "color": "black",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal b} = negativo",
+                        "column_id": "Limite Superior (xu)",
+                    },
+                    "backgroundColor": "#800000",
+                    "color": "white",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal b} = positivo",
+                        "column_id": "Limite Superior (xu)",
+                    },
+                    "backgroundColor": "#ADD8E6",  # Azul claro
+                    "color": "black",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal x} = negativo",
+                        "column_id": "Aproximação da Raiz (xr)",
+                    },
+                    "backgroundColor": "#800000",
+                    "color": "white",
+                },
+                {
+                    "if": {
+                        "filter_query": "{Sinal x} = positivo",
+                        "column_id": "Aproximação da Raiz (xr)",
+                    },
+                    "backgroundColor": "#ADD8E6",  # Azul claro
+                    "color": "black",
+                },
+            ],
             style_header=DATA_TABLE_STYLE.get("style_header"),
         ),
     ]
@@ -491,6 +582,13 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
     fig_dict["layout"]["xaxis"] = {"range": [intervalo[0], intervalo[1]], "title": "x"}
     fig_dict["layout"]["yaxis"] = {"title": "f(x)"}
     fig_dict["layout"]["hovermode"] = "closest"
+    # tornando a legenda flutuante
+    fig_dict["layout"]["legend"] = {
+        "x": 1,
+        "y": 1,
+        "xanchor": "right",
+        "yanchor": "top",
+    }
     fig_dict["layout"]["updatemenus"] = [
         {
             "buttons": [
@@ -552,8 +650,14 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
     }
 
     # Adicionar a função ao gráfico inicial
-    fig_dict["data"].append(go.Scatter(x=x, y=y, mode="lines", name=""))
-    fig_dict["data"].append(go.Scatter(x=x, y=y, mode="lines", name=""))
+    fig_dict["data"].append(
+        go.Scatter(
+            x=[intervalo[0], intervalo[1]], y=[0,0], mode="markers", name="Intervalo [a, b]"
+        )
+    )
+    fig_dict["data"].append(
+        go.Scatter(x=[0], y=[0], mode="markers", name="Aproximação da Raiz")
+    )
     fig_dict["data"].append(go.Scatter(x=x, y=y, mode="lines", name="Função"))
 
     # Calcular as iterações e adicionar os frames
