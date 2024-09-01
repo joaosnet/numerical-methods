@@ -223,6 +223,28 @@ files = [
 ]
 
 [[package]]
+name = "dash-iconify"
+version = "0.1.2"
+description = "Iconify for Plotly Dash"
+optional = false
+python-versions = "*"
+files = [
+    {file = "dash_iconify-0.1.2-py3-none-any.whl", hash = "sha256:9ab0eda19bb4514e177bf1f8f36947bb9e5b44aba6ce947f22a1cf0f1a45fc14"},
+    {file = "dash_iconify-0.1.2.tar.gz", hash = "sha256:564774be6b11b0ac3a8999b7137c3d17a1d351d69b673aa313c7228eacc9d143"},
+]
+
+[[package]]
+name = "dash-mantine-components"
+version = "0.14.4"
+description = "Plotly Dash Components based on Mantine"
+optional = false
+python-versions = "*"
+files = [
+    {file = "dash_mantine_components-0.14.4-py3-none-any.whl", hash = "sha256:0fd61975ecc8938ac7bdd622f1382f704f592077600b55375295fc19824d1c75"},
+    {file = "dash_mantine_components-0.14.4.tar.gz", hash = "sha256:ba2b893fc51d7ed8ebc8765bcfb15a20303726ca7b2fc474d3a4a3922a68fac4"},
+]
+
+[[package]]
 name = "dash-table"
 version = "5.0.0"
 description = "Dash table"
@@ -871,4 +893,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "e2f8e3d2e74f44ab004a4123a9d34b194cec51d9c562f9de9a4589a261a3e3e6"
+content-hash = "faedea435e2d470b5b8b8ae8a65a1c072d6a0a0e429a62fc58a4f374fb26d01e"

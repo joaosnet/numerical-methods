@@ -66,11 +66,23 @@ class metodos_numericos:
         Raises:
             RuntimeError: Se o método não convergir após o número máximo de iterações.
         """
+        df = pd.DataFrame(
+            columns=[
+                "a",
+                "b",
+                "Aproximação da Raiz",
+                "Erro Relativo (%)",
+                "Sinal a",
+                "Sinal b",
+                "Sinal x",
+            ]
+        )
+        iteracoes = 0
         x = None
         x_anterior = None
         while abs(b - a) > tol:
-            self.iteracoes += 1
-            if self.iteracoes >= maxiter:
+            iteracoes += 1
+            if iteracoes >= maxiter:
                 if disp:
                     raise RuntimeError(
                         "Falha ao convergir após %d iterações, valor é %s"
@@ -82,13 +94,13 @@ class metodos_numericos:
             fb = f(b, *args)
             x = (a + b) / 2
             fx = f(x, *args)
-            
-            if self.iteracoes != 1:
+
+            if iteracoes != 1:
                 erro = abs((x - x_anterior) / x) * 100
             else:
                 erro = None
-                
-            self.df.loc[self.iteracoes] = [
+
+            df.loc[iteracoes] = [
                 a,
                 b,
                 x,
@@ -97,7 +109,7 @@ class metodos_numericos:
                 "positivo" if np.sign(fb) > 0 else "negativo",
                 "positivo" if np.sign(fx) > 0 else "negativo",
             ]
-            
+
             if abs(b - a) < xtol or abs(fx) < rtol:
                 break
             if fa * fx < 0:
@@ -105,12 +117,35 @@ class metodos_numericos:
             else:
                 a = x
             x_anterior = x
+            
+        self.iteracoes = iter
+        self.df = df
+        
         if full_output:
-            return x, self.df
+            return x, df, iteracoes
         else:
             return x
-    
-    def falsaposicao_modificada(self, xl, xu, f, es=0.0001, imax=50):
+
+    def falsaposicao_modificada(
+        self,
+        xl,
+        xu,
+        f,
+        es=0.0001,
+        imax=50,
+        full_output=False,
+    ):
+        df = pd.DataFrame(
+            columns=[
+                "a",
+                "b",
+                "Aproximação da Raiz",
+                "Erro Relativo (%)",
+                "Sinal a",
+                "Sinal b",
+                "Sinal x",
+            ]
+        )
         iter = 0
         fl = f(xl)
         fu = f(xu)
@@ -146,8 +181,7 @@ class metodos_numericos:
                     fu /= 2
             else:
                 ea = 0
-            self.iteracoes = iter
-            self.df.loc[iter] = [
+            df.loc[iter] = [
                 xl,
                 xu,
                 xr,
@@ -157,7 +191,13 @@ class metodos_numericos:
                 "positivo" if np.sign(fr) > 0 else "negativo",
             ]
 
-        return xr
+        self.iteracoes = iter
+        self.df = df
+        
+        if full_output:
+            return xr, df, iter
+        else:
+            return xr
 
     def get_df(self):
         """
@@ -176,6 +216,7 @@ class metodos_numericos:
             int: O número de iterações realizadas.
         """
         return self.iteracoes
+
 
 # Exemplo de uso da biblioteca de forma separada
 if __name__ == "__main__":
@@ -200,19 +241,17 @@ if __name__ == "__main__":
 
         def f(x):
             return np.sin(x) - 0.5
-        
+
     elif var == 3:
-        
+
         def f(x):
-            return np.cos(np.log(x**2+1))
+            return np.cos(np.log(x**2 + 1))
 
     else:
         import math
 
         def f(x):
             return math.exp(-x) - x
-        
-        
 
     # ----------------------------------------
     print("Para a função {}".format(str(f)))
