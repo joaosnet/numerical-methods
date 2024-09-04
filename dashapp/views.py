@@ -5,7 +5,7 @@ import dash_dangerously_set_inner_html
 import numpy as np
 import sympy as sp
 from sympy.parsing.latex import parse_latex
-from metodos import metodos_numericos
+from metodos import bissecao, falsaposicao_modificada
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import plotly.graph_objects as go
@@ -289,11 +289,10 @@ def funcao_latex(expressao_simbolica):
 # Função que retornar a tabela de iterações para o método da bisseção
 def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
     funcao, funcao_simbolica = tratar_funcao(funcao)
-    # inicializando a classe metodos_numericos
-    mn = metodos_numericos()
+    
     # tratando a função que está em string para uma função que o python entenda
     try:
-        x, df, iteracoes = mn.bissecao(
+        x, df, iteracoes = bissecao(
             intervalo[0],
             intervalo[1],
             funcao,
@@ -410,12 +409,11 @@ def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
 # Função que retornar a tabela de iterações para o método da falsa posição
 def calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia):
     funcao, funcao_simbolica = tratar_funcao(funcao)
-    # inicializando a classe metodos_numericos
-    mn = metodos_numericos()
+    
     # tratando a função que está em string para uma função que o python entenda
 
     try:
-        falsaposicao_raiz, df, iteracoes = mn.falsaposicao_modificada(
+        falsaposicao_raiz, df, iteracoes = falsaposicao_modificada(
             intervalo[0],
             intervalo[1],
             funcao,
@@ -566,8 +564,7 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
     funcao, funcao_simbolica = tratar_funcao(funcao)
     funcao_latex1 = funcao_latex(funcao_simbolica)
 
-    # Inicializando a classe metodos_numericos
-    mn = metodos_numericos()
+    
     x = np.linspace(intervalo[0], intervalo[1], 100)
     y = funcao(x)
 
@@ -662,7 +659,7 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
 
     # Calcular as iterações e adicionar os frames
     if saida == "Bisseção":
-        x1, df, iter = mn.bissecao(
+        x1, df, iter = bissecao(
             intervalo[0],
             intervalo[1],
             funcao,
@@ -731,7 +728,7 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
             sliders_dict["steps"].append(slider_step)
 
     elif saida == "Falsa Posição":
-        x1, df, iter = mn.falsaposicao_modificada(  # noqa: F841
+        x1, df, iter = falsaposicao_modificada(  # noqa: F841
             intervalo[0], intervalo[1], funcao, imax=interacoes, full_output=True
         )
 

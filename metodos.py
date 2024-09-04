@@ -2,230 +2,177 @@ import pandas as pd
 import numpy as np
 
 
-class metodos_numericos:
+
+
+def bissecao(
+    a,
+    b,
+    f,
+    args=(),
+    tol=1e-18,
+    xtol=1e-12,
+    rtol=1e-12,
+    maxiter=100,
+    full_output=False,
+    disp=True,
+):
     """
-    Biblioteca de métodos numéricos para encontrar raízes de funções.
+    Executa o método da bisseção para encontrar a raiz.
 
-    Attributes:
-        df (pandas.DataFrame): DataFrame que armazena os valores intermediários de `a`, `b`, `X0`, `Er`, e sinais.
-        iteracoes (int): O número de iterações realizadas.
+    Args:
+    a (float): O limite inferior do intervalo.
+    b (float): O limite superior do intervalo.
+    f (function): A função para a qual se deseja encontrar a raiz.
+    args (tuple, optional): Argumentos adicionais para a função `f`. Defaults to ().
+    tol (float, optional): A tolerância para a diferença entre `a` e `b`. Defaults to 1e-18.
+    xtol (float, optional): A tolerância para a diferença entre as raízes consecutivas. Defaults to 1e-12.
+    rtol (float, optional): A tolerância para o valor absoluto da função. Defaults to 1e-12.
+    maxiter (int, optional): O número máximo de iterações permitidas. Defaults to 100.
+    full_output (bool, optional): Se True, retorna a raiz e um DataFrame com os valores intermediários.
+        Se False, retorna apenas a raiz. Defaults to False.
+    disp (bool, optional): Se True, exibe uma mensagem de erro se o método não convergir.
+        Se False, retorna None se o método não convergir. Defaults to True.
 
-    Methods:
-        bissecao(): Executa o método da bisseção para encontrar a raiz.
-        get_df(): Retorna o DataFrame(Tabela) com os valores intermediários.
-        get_iteracoes(): Retorna o número de iterações realizadas.
+    Returns:
+        float: A raiz da função.
+        pandas.DataFrame: O DataFrame com os valores intermediários, se `full_output` for True.
+    Raises:
+        RuntimeError: Se o método não convergir após o número máximo de iterações.
     """
+    df = pd.DataFrame(
+        columns=[
+            "a",
+            "b",
+            "Aproximação da Raiz",
+            "Erro Relativo (%)",
+            "Sinal a",
+            "Sinal b",
+            "Sinal x",
+        ]
+    )
+    iteracoes = 0
+    x = None
+    x_anterior = None
+    while abs(b - a) > tol:
+        iteracoes += 1
+        
+        fa = f(a, *args)
+        fb = f(b, *args)
+        x = (a + b) / 2
+        fx = f(x, *args)
 
-    def __init__(self):
-        self.df = pd.DataFrame(
-            columns=[
-                "a",
-                "b",
-                "Aproximação da Raiz",
-                "Erro Relativo (%)",
-                "Sinal a",
-                "Sinal b",
-                "Sinal x",
-            ]
-        )
-        self.iteracoes = 0
+        if iteracoes != 1:
+            erro = abs((x - x_anterior) / x) * 100
+        else:
+            erro = None
 
-    def bissecao(
-        self,
-        a,
-        b,
-        f,
-        args=(),
-        tol=1e-18,
-        xtol=1e-12,
-        rtol=1e-12,
-        maxiter=100,
-        full_output=False,
-        disp=True,
-    ):
-        """
-        Executa o método da bisseção para encontrar a raiz.
+        df.loc[iteracoes] = [
+            a,
+            b,
+            x,
+            erro if erro is not None else "-",
+            "positivo" if np.sign(fa) > 0 else "negativo",
+            "positivo" if np.sign(fb) > 0 else "negativo",
+            "positivo" if np.sign(fx) > 0 else "negativo",
+        ]
 
-        Args:
-        a (float): O limite inferior do intervalo.
-        b (float): O limite superior do intervalo.
-        f (function): A função para a qual se deseja encontrar a raiz.
-        args (tuple, optional): Argumentos adicionais para a função `f`. Defaults to ().
-        tol (float, optional): A tolerância para a diferença entre `a` e `b`. Defaults to 1e-18.
-        xtol (float, optional): A tolerância para a diferença entre as raízes consecutivas. Defaults to 1e-12.
-        rtol (float, optional): A tolerância para o valor absoluto da função. Defaults to 1e-12.
-        maxiter (int, optional): O número máximo de iterações permitidas. Defaults to 100.
-        full_output (bool, optional): Se True, retorna a raiz e um DataFrame com os valores intermediários.
-            Se False, retorna apenas a raiz. Defaults to False.
-        disp (bool, optional): Se True, exibe uma mensagem de erro se o método não convergir.
-            Se False, retorna None se o método não convergir. Defaults to True.
-
-        Returns:
-            float: A raiz da função.
-            pandas.DataFrame: O DataFrame com os valores intermediários, se `full_output` for True.
-        Raises:
-            RuntimeError: Se o método não convergir após o número máximo de iterações.
-        """
-        df = pd.DataFrame(
-            columns=[
-                "a",
-                "b",
-                "Aproximação da Raiz",
-                "Erro Relativo (%)",
-                "Sinal a",
-                "Sinal b",
-                "Sinal x",
-            ]
-        )
-        iteracoes = 0
-        x = None
-        x_anterior = None
-        while abs(b - a) > tol:
-            iteracoes += 1
-            
-            fa = f(a, *args)
-            fb = f(b, *args)
-            x = (a + b) / 2
-            fx = f(x, *args)
-
-            if iteracoes != 1:
-                erro = abs((x - x_anterior) / x) * 100
+        if abs(b - a) < xtol or abs(fx) < rtol:
+            break
+        if fa * fx < 0:
+            b = x
+        else:
+            a = x
+        x_anterior = x
+        if iteracoes >= maxiter:
+            if disp:
+                raise RuntimeError(
+                    "Falha ao convergir após %d iterações, valor é %s"
+                    % (maxiter, x)
+                )
             else:
-                erro = None
-
-            df.loc[iteracoes] = [
-                a,
-                b,
-                x,
-                erro if erro is not None else "-",
-                "positivo" if np.sign(fa) > 0 else "negativo",
-                "positivo" if np.sign(fb) > 0 else "negativo",
-                "positivo" if np.sign(fx) > 0 else "negativo",
-            ]
-
-            if abs(b - a) < xtol or abs(fx) < rtol:
-                break
-            if fa * fx < 0:
-                b = x
-            else:
-                a = x
-            x_anterior = x
-            if iteracoes >= maxiter:
-                if disp:
-                    raise RuntimeError(
-                        "Falha ao convergir após %d iterações, valor é %s"
-                        % (maxiter, x)
-                    )
+                if full_output:
+                    return x, df, iteracoes
                 else:
-                    if full_output:
-                        return x, df, iteracoes
-                    else:
-                        return x
+                    return x
             
-        self.iteracoes = iter
-        self.df = df
-        
-        if full_output:
-            return x, df, iteracoes
+    if full_output:
+        return x, df, iteracoes
+    else:
+        return x
+
+def falsaposicao_modificada(
+    xl,
+    xu,
+    f,
+    es=0.0001,
+    imax=50,
+    full_output=False,
+):
+    df = pd.DataFrame(
+        columns=[
+            "a",
+            "b",
+            "Aproximação da Raiz",
+            "Erro Relativo (%)",
+            "Sinal a",
+            "Sinal b",
+            "Sinal x",
+        ]
+    )
+    iter = 0
+    fl = f(xl)
+    fu = f(xu)
+    xr = xl
+    ea = 100
+    il = 0
+    iu = 0
+
+    while ea > es and iter < imax:
+        xrold = xr
+        xr = xu - fu * (xl - xu) / (fl - fu)
+        fr = f(xr)
+        iter += 1
+
+        if xr != 0:
+            ea = abs((xr - xrold) / xr) * 100
+
+        test = fl * fr
+
+        if test < 0:
+            xu = xr
+            fu = f(xu)
+            iu = 0
+            il += 1
+            if il >= 2:
+                fl /= 2
+        elif test > 0:
+            xl = xr
+            fl = f(xl)
+            il = 0
+            iu += 1
+            if iu >= 2:
+                fu /= 2
         else:
-            return x
+            ea = 0
+        df.loc[iter] = [
+            xl,
+            xu,
+            xr,
+            ea if ea is not None else "-",
+            "positivo" if np.sign(fl) > 0 else "negativo",
+            "positivo" if np.sign(fu) > 0 else "negativo",
+            "positivo" if np.sign(fr) > 0 else "negativo",
+        ]
 
-    def falsaposicao_modificada(
-        self,
-        xl,
-        xu,
-        f,
-        es=0.0001,
-        imax=50,
-        full_output=False,
-    ):
-        df = pd.DataFrame(
-            columns=[
-                "a",
-                "b",
-                "Aproximação da Raiz",
-                "Erro Relativo (%)",
-                "Sinal a",
-                "Sinal b",
-                "Sinal x",
-            ]
-        )
-        iter = 0
-        fl = f(xl)
-        fu = f(xu)
-        xr = xl
-        ea = 100
-        il = 0
-        iu = 0
-
-        while ea > es and iter < imax:
-            xrold = xr
-            xr = xu - fu * (xl - xu) / (fl - fu)
-            fr = f(xr)
-            iter += 1
-
-            if xr != 0:
-                ea = abs((xr - xrold) / xr) * 100
-
-            test = fl * fr
-
-            if test < 0:
-                xu = xr
-                fu = f(xu)
-                iu = 0
-                il += 1
-                if il >= 2:
-                    fl /= 2
-            elif test > 0:
-                xl = xr
-                fl = f(xl)
-                il = 0
-                iu += 1
-                if iu >= 2:
-                    fu /= 2
-            else:
-                ea = 0
-            df.loc[iter] = [
-                xl,
-                xu,
-                xr,
-                ea if ea is not None else "-",
-                "positivo" if np.sign(fl) > 0 else "negativo",
-                "positivo" if np.sign(fu) > 0 else "negativo",
-                "positivo" if np.sign(fr) > 0 else "negativo",
-            ]
-
-        self.iteracoes = iter
-        self.df = df
-        
-        if full_output:
-            return xr, df, iter
-        else:
-            return xr
-
-    def get_df(self):
-        """
-        Retorna o DataFrame com os valores intermediários.
-
-        Returns:
-            pandas.DataFrame: O DataFrame com os valores intermediários.
-        """
-        return self.df
-
-    def get_iteracoes(self):
-        """
-        Retorna o número de iterações realizadas.
-
-        Returns:
-            int: O número de iterações realizadas.
-        """
-        return self.iteracoes
+    if full_output:
+        return xr, df, iter
+    else:
+        return xr
 
 
 # Exemplo de uso da biblioteca de forma separada
 if __name__ == "__main__":
     # inicializa a biblioteca
-    mn = metodos_numericos()
     import random
 
     # seleciona aleatoriamente qual dos dois tipos de funções para testar o
@@ -259,10 +206,10 @@ if __name__ == "__main__":
 
     # ----------------------------------------
     print("Para a função {}".format(str(f)))
-    raiz = mn.bissecao(0, 1, f)
+    raiz, df, iter = bissecao(0, 1, f, full_output=True)
     print("Raiz:", raiz)
-    print("Iterações:", mn.get_iteracoes())
-    print(mn.get_df())
+    print("Iterações:", iter)
+    print(df)
 
     from scipy.optimize import bisect
 
