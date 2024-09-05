@@ -289,7 +289,7 @@ def funcao_latex(expressao_simbolica):
 # Função que retornar a tabela de iterações para o método da bisseção
 def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
     funcao, funcao_simbolica = tratar_funcao(funcao)
-    
+
     # tratando a função que está em string para uma função que o python entenda
     try:
         x, df, iteracoes = bissecao(
@@ -409,7 +409,7 @@ def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
 # Função que retornar a tabela de iterações para o método da falsa posição
 def calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia):
     funcao, funcao_simbolica = tratar_funcao(funcao)
-    
+
     # tratando a função que está em string para uma função que o python entenda
 
     try:
@@ -425,20 +425,20 @@ def calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia):
         resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {falsaposicao_raiz} com {iteracoes} iterações."
 
         # renomeando os cabeçalhos das colunas
-        df = df.rename(
-            columns={
-                "a": "Limite Inferior (xl)",
-                "b": "Limite Superior (xu)",
-                "Aproximação da Raiz": "Aproximação da Raiz (xr)",
-                "Erro Relativo (%)": "Erro Relativo (%)",
-                "Sinal a": "Sinal a",
-                "Sinal b": "Sinal b",
-                "Sinal x": "Sinal x",
-            }
-        )
+        # df = df.rename(
+        #     columns={
+        #         "a": "Limite Inferior (xl)",
+        #         "b": "Limite Superior (xu)",
+        #         "Aproximação da Raiz": "Aproximação da Raiz (xr)",
+        #         "Erro Relativo (%)": "Erro Relativo (%)",
+        #         "Sinal a": "Sinal a",
+        #         "Sinal b": "Sinal b",
+        #         "Sinal x": "Sinal x",
+        #     }
+        # )
 
         # adicionando a coluna da iteração como a primeira coluna
-        df.insert(0, "Iteração", range(1, len(df) + 1))
+        # df.insert(0, "Iteração", range(1, len(df) + 1))
     except:  # noqa: E722
         resultado = (
             f"O método da falsa posição não convergiu após {interacoes} iterações."
@@ -458,7 +458,7 @@ def calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia):
         dash_table.DataTable(
             df.to_dict("records"),
             [{"name": i, "id": i, "hideable": True} for i in df.columns],
-            hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
+            hidden_columns=["f(xl)", "f(xu)", "Erro Relativo (%)"],
             id="table",
             sort_action="native",
             style_table={"height": "300px", "overflowY": "auto"},
@@ -564,7 +564,6 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
     funcao, funcao_simbolica = tratar_funcao(funcao)
     funcao_latex1 = funcao_latex(funcao_simbolica)
 
-    
     x = np.linspace(intervalo[0], intervalo[1], 100)
     y = funcao(x)
 
@@ -649,7 +648,10 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
     # Adicionar a função ao gráfico inicial
     fig_dict["data"].append(
         go.Scatter(
-            x=[intervalo[0], intervalo[1]], y=[0,0], mode="markers", name="Intervalo [a, b]"
+            x=[intervalo[0], intervalo[1]],
+            y=[0, 0],
+            mode="markers",
+            name="Intervalo [a, b]",
         )
     )
     fig_dict["data"].append(
@@ -734,48 +736,26 @@ def grafico_animado(intervalo, funcao, interacoes, saida):
 
         for i, row in df.iterrows():
             frame = {"data": [], "name": str(i)}
+            # Reta da Falsa Posição
             frame["data"].append(
                 go.Scatter(
-                    x=[row["a"], row["b"]],
-                    y=[0, 0],
-                    mode="markers",
+                    x=[row["Início do Intervalo (xl)"], row["Final do Intervalo (xu)"]],
+                    y=[row["f(xl)"], row["f(xu)"]],
+                    mode="lines",
                     name="Intervalo [a, b]",
                 )
             )
+            
             frame["data"].append(
                 go.Scatter(
-                    x=[row["Aproximação da Raiz"]],
+                    x=[row["Aproximação da Raiz (xr)"]],
                     y=[0],
                     mode="markers",
                     name="Aproximação da Raiz",
                     marker=dict(color="red", size=10),
                 )
             )
-            # Adicionar linhas verticais para os intervalos [a, b] e a aproximação da raiz
-            frame["layout"] = {
-                "shapes": [
-                    dict(
-                        type="line",
-                        x0=row["a"],
-                        y0=min(y),
-                        x1=row["a"],
-                        y1=max(y),
-                        line=dict(color="blue", width=2),
-                        line_dash="dash",
-                        line_width=3,
-                    ),
-                    dict(
-                        type="line",
-                        x0=row["b"],
-                        y0=min(y),
-                        x1=row["b"],
-                        y1=max(y),
-                        line=dict(color="blue", width=2),
-                        line_dash="dash",
-                        line_width=3,
-                    ),
-                ]
-            }
+            
             fig_dict["frames"].append(frame)
             slider_step = {
                 "args": [

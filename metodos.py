@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 
 
-
-
 def bissecao(
     a,
     b,
@@ -55,7 +53,7 @@ def bissecao(
     x_anterior = None
     while abs(b - a) > tol:
         iteracoes += 1
-        
+
         fa = f(a, *args)
         fb = f(b, *args)
         x = (a + b) / 2
@@ -86,37 +84,31 @@ def bissecao(
         if iteracoes >= maxiter:
             if disp:
                 raise RuntimeError(
-                    "Falha ao convergir após %d iterações, valor é %s"
-                    % (maxiter, x)
+                    "Falha ao convergir após %d iterações, valor é %s" % (maxiter, x)
                 )
             else:
                 if full_output:
                     return x, df, iteracoes
                 else:
                     return x
-            
+
     if full_output:
         return x, df, iteracoes
     else:
         return x
 
-def falsaposicao_modificada(
-    xl,
-    xu,
-    f,
-    es=0.0001,
-    imax=50,
-    full_output=False,
-):
+
+def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
     df = pd.DataFrame(
         columns=[
-            "a",
-            "b",
-            "Aproximação da Raiz",
+            "Iteração",
+            "Início do Intervalo (xl)",
+            "Final do Intervalo (xu)",
+            "Aproximação da Raiz (xr)",
+            "f(xl)",
+            "f(xu)",
+            "f(xr)",
             "Erro Relativo (%)",
-            "Sinal a",
-            "Sinal b",
-            "Sinal x",
         ]
     )
     iter = 0
@@ -128,6 +120,10 @@ def falsaposicao_modificada(
     iu = 0
 
     while ea > es and iter < imax:
+        xl_anterior = xl
+        xu_anterior = xu
+        fl_anterior = fl
+        fu_anterior = fu
         xrold = xr
         xr = xu - fu * (xl - xu) / (fl - fu)
         fr = f(xr)
@@ -154,14 +150,16 @@ def falsaposicao_modificada(
                 fu /= 2
         else:
             ea = 0
+
         df.loc[iter] = [
-            xl,
-            xu,
+            iter,
+            xl_anterior,
+            xu_anterior,
             xr,
+            fl_anterior,
+            fu_anterior,
+            fr,
             ea if ea is not None else "-",
-            "positivo" if np.sign(fl) > 0 else "negativo",
-            "positivo" if np.sign(fu) > 0 else "negativo",
-            "positivo" if np.sign(fr) > 0 else "negativo",
         ]
 
     if full_output:
