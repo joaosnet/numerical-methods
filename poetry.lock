@@ -12,6 +12,21 @@ files = [
 ]
 
 [[package]]
+name = "array-to-latex"
+version = "0.92"
+description = "Return Numpy and Pandas arrays as formatted LaTeX arrays."
+optional = false
+python-versions = "*"
+files = [
+    {file = "array_to_latex-0.92-py3-none-any.whl", hash = "sha256:1a476781d4149161421472a9078095bf9ed26ba08a810ab4ffe4a937e8318de7"},
+]
+
+[package.dependencies]
+clipboard = "*"
+numpy = "*"
+pandas = "*"
+
+[[package]]
 name = "blinker"
 version = "1.8.2"
 description = "Fast, simple object-to-object and broadcast signaling"
@@ -145,6 +160,19 @@ files = [
 
 [package.dependencies]
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[[package]]
+name = "clipboard"
+version = "0.0.4"
+description = "A cross platform clipboard operation library of Python. Works for Windows, Mac and Linux."
+optional = false
+python-versions = "*"
+files = [
+    {file = "clipboard-0.0.4.tar.gz", hash = "sha256:a72a78e9c9bf68da1c3f29ee022417d13ec9e3824b511559fd2b702b1dd5b817"},
+]
+
+[package.dependencies]
+pyperclip = ">=1.3"
 
 [[package]]
 name = "colorama"
@@ -633,6 +661,16 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "pyperclip"
+version = "1.9.0"
+description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyperclip-1.9.0.tar.gz", hash = "sha256:b7de0142ddc81bfc5c7507eea19da920b92252b548b96186caf94a5e2527d310"},
+]
+
+[[package]]
 name = "pytest"
 version = "8.3.2"
 description = "pytest: simple powerful testing with Python"
@@ -925,4 +963,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "4ab31a0fc4078a60193fb330911271cf8b82c10c3652a89200336cc32ff98e57"
+content-hash = "e1a140a564f05753473aa8d6ca68a876787655d77800ed55dffc429cd55c6e28"

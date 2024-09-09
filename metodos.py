@@ -118,14 +118,20 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
     ea = 100
     il = 0
     iu = 0
-
+    
     while ea > es and iter < imax:
         xl_anterior = xl
         xu_anterior = xu
         fl_anterior = fl
         fu_anterior = fu
         xrold = xr
-        xr = xu - fu * (xl - xu) / (fl - fu)
+
+        dif_intervalos = fl - fu
+
+        if dif_intervalos == 0:
+            dif_intervalos = fu - fl
+
+        xr = xu - fu * (xl - xu) / dif_intervalos
         fr = f(xr)
         iter += 1
 
@@ -166,6 +172,39 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
         return xr, df, iter
     else:
         return xr
+    
+# Método da Iteração Linear (Ponto Fixo)
+def iteracao_linear(g, x0, tol=1e-6, maxiter=100, full_output=False):
+    """
+    Executa o método da Iteração Linear (Ponto Fixo) para encontrar a raiz.
+
+    Args:
+    g (function): A função de iteração.
+    x0 (float): O valor inicial.
+    tol (float, optional): A tolerância para o erro aproximado. Defaults to 1e-6.
+    maxiter (int, optional): O número máximo de iterações permitidas. Defaults to 100.
+
+    Returns:
+        float: A raiz da função.
+        pandas.DataFrame: O DataFrame com os valores intermediários.
+    """
+    df = pd.DataFrame(columns=["Iteração", "x", "Erro Aproximado (%)"])
+    xr = x0
+    iter = 0
+    ea = 100
+
+    while ea > tol and iter < maxiter:
+        xrold = xr
+        xr = g(xrold)
+        iter += 1
+        if xr != 0:
+            ea = abs((xr - xrold) / xr) * 100
+        df.loc[iter] = [iter, xr, ea]
+
+    if full_output:
+        return xr, df, iter
+    else:
+        return df
 
 
 # Exemplo de uso da biblioteca de forma separada
@@ -203,7 +242,11 @@ if __name__ == "__main__":
             return math.exp(-x) - x
 
     # ----------------------------------------
-    print("Para a função {}".format(str(f)))
+    import inspect
+
+    # Obtém o código-fonte da função f
+    func_source = inspect.getsource(f)
+    print(f"Para a função:\n{func_source}")
     raiz, df, iter = bissecao(0, 1, f, full_output=True)
     print("Raiz:", raiz)
     print("Iterações:", iter)
