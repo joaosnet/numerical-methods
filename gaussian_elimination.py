@@ -55,77 +55,72 @@ def matriz_forma_final(A, full_output=False):
 
 
 def pivot(a, b, s, n, k):
-    p = k
-    big = abs(a[k, k] / s[k])
-    for ii in range(k + 1, n):
-        dummy = abs(a[ii, k] / s[ii])
-        if dummy > big:
-            big = dummy
-            p = ii
-    if p != k:
-        for jj in range(k, n):
-            a[p, jj], a[k, jj] = a[k, jj], a[p, jj]
-        b[p], b[k] = b[k], b[p]
-        s[p], s[k] = s[k], s[p]
-    return a, b, s
+    p = k  # Inicializa p como k, que é o índice da linha atual
+    big = abs(a[k, k] / s[k])  # Calcula o maior valor relativo para a linha k
+    for ii in range(k + 1, n):  # Itera sobre as linhas abaixo da linha k
+        dummy = abs(a[ii, k] / s[ii])  # Calcula o valor relativo para a linha ii
+        if dummy > big:  # Se o valor relativo for maior que o atual maior valor
+            big = dummy  # Atualiza o maior valor
+            p = ii  # Atualiza o índice da linha com o maior valor
+    if p != k:  # Se a linha com o maior valor não for a linha k
+        for jj in range(k, n):  # Itera sobre as colunas a partir da coluna k
+            a[p, jj], a[k, jj] = a[k, jj], a[p, jj]  # Troca as linhas p e k na matriz a
+        b[p], b[k] = b[k], b[p]  # Troca as linhas p e k no vetor b
+        s[p], s[k] = s[k], s[p]  # Troca as linhas p e k no vetor s
+    return a, b, s  # Retorna as matrizes e vetores atualizados
 
 def substitute(a, n, b, x, df):
-    # transformando a e b em arrays NumPy
-    mat = np.hstack((a, b.reshape(-1, 1)))
-    x[n-1] = b[n-1] / a[n-1, n-1]
-    mat[n-1, n] = b[n-1] / a[n-1, n-1]
-    for i in range(n - 2, -1, -1):
-        sum_ = 0
-        for j in range(i + 1, n):
-            sum_ += a[i, j] * x[j]
-        x[i] = (b[i] - sum_) / a[i, i]
-        mat[i, n] = (b[i] - sum_) / a[i, i]
-        df = df._append(
-            {"Matriz": mat.copy()}, ignore_index=True
-        )
-    return x, df
+    mat = np.hstack((a, b.reshape(-1, 1)))  # Combina a matriz a e o vetor b em uma matriz
+    x[n-1] = b[n-1] / a[n-1, n-1]  # Calcula o valor de x para a última linha
+    mat[n-1, n] = b[n-1] / a[n-1, n-1]  # Atualiza a matriz combinada com o valor de x calculado
+    for i in range(n - 2, -1, -1):  # Itera de baixo para cima, excluindo a última linha
+        sum_ = 0  # Inicializa a soma
+        for j in range(i + 1, n):  # Itera sobre as colunas à direita da diagonal
+            sum_ += a[i, j] * x[j]  # Calcula a soma dos produtos dos elementos da linha i e x
+        x[i] = (b[i] - sum_) / a[i, i]  # Calcula o valor de x para a linha i
+        mat[i, n] = (b[i] - sum_) / a[i, i]  # Atualiza a matriz combinada com o valor de x calculado
+        df = df._append({"Matriz": mat.copy()}, ignore_index=True)  # Armazena uma cópia da matriz no DataFrame
+    return x, df  # Retorna o vetor x e o DataFrame atualizado
 
 def eliminate(a, s, n, b, tol, er, df):
-    for k in range(n - 1):
-        a, b, s = pivot(a, b, s, n, k)
-        if abs(a[k, k] / s[k]) < tol:
-            er = -1
-            break
-        for i in range(k + 1, n):
-            factor = a[i, k] / a[k, k]
-            for j in range(k, n):
-                a[i, j] -= factor * a[k, j]
-            b[i] -= factor * b[k]
-        df = df._append(
-            {"Matriz": np.hstack((a, b.reshape(-1, 1))).copy()}, ignore_index=True
-        )
-    if abs(a[n-1, n-1] / s[n-1]) < tol:
-        er = -1
-    return a, b, er, df
+    for k in range(n - 1):  # Itera sobre as colunas, exceto a última
+        a, b, s = pivot(a, b, s, n, k)  # Realiza a pivotação parcial
+        if abs(a[k, k] / s[k]) < tol:  # Verifica se o elemento da diagonal é menor que a tolerância
+            er = -1  # Define o erro como -1
+            break  # Sai do loop
+        for i in range(k + 1, n):  # Itera sobre as linhas abaixo da linha k
+            factor = a[i, k] / a[k, k]  # Calcula o fator de eliminação
+            for j in range(k, n):  # Itera sobre as colunas a partir da coluna k
+                a[i, j] -= factor * a[k, j]  # Atualiza a linha i subtraindo o fator vezes a linha k
+            b[i] -= factor * b[k]  # Atualiza o vetor b
+        df = df._append({"Matriz": np.hstack((a, b.reshape(-1, 1))).copy()}, ignore_index=True)  # Armazena uma cópia da matriz no DataFrame
+    if abs(a[n-1, n-1] / s[n-1]) < tol:  # Verifica se o último elemento da diagonal é menor que a tolerância
+        er = -1  # Define o erro como -1
+    return a, b, er, df  # Retorna as matrizes, o vetor b, o erro e o DataFrame atualizado
 
 def gauss(mat, tol=1.0e-12, full_output=False):
-    mat = np.array(mat, dtype=float)
-    a, b = np.hsplit(mat, [len(mat)])
-    n = len(b)
-    x = np.zeros(n)
-    s = np.zeros(n)
-    er = 0
-    df1 = pd.DataFrame(columns=["Matriz"])
+    mat = np.array(mat, dtype=float)  # Converte a matriz para um array NumPy
+    a, b = np.hsplit(mat, [len(mat)])  # Separa a matriz a e o vetor b
+    n = len(b)  # Obtém o tamanho do vetor b
+    x = np.zeros(n)  # Inicializa o vetor x com zeros
+    s = np.zeros(n)  # Inicializa o vetor s com zeros
+    er = 0  # Inicializa o erro como 0
+    df1 = pd.DataFrame(columns=["Matriz"])  # Cria um DataFrame para armazenar as matrizes
 
-    for i in range(n):
-        s[i] = abs(a[i, 0])
-        for j in range(1, n):
-            if abs(a[i, j]) > s[i]:
-                s[i] = abs(a[i, j])
+    for i in range(n):  # Itera sobre as linhas
+        s[i] = abs(a[i, 0])  # Inicializa o vetor s com o valor absoluto do primeiro elemento da linha
+        for j in range(1, n):  # Itera sobre as colunas a partir da segunda coluna
+            if abs(a[i, j]) > s[i]:  # Se o valor absoluto do elemento for maior que o valor atual em s
+                s[i] = abs(a[i, j])  # Atualiza o valor em s
 
-    a, b, er, df1 = eliminate(a, s, n, b, tol, er, df1)
-    if er != -1:
-        x, df = substitute(a, n, b, x, df1)
+    a, b, er, df1 = eliminate(a, s, n, b, tol, er, df1)  # Realiza a eliminação gaussiana
+    if er != -1:  # Se não houve erro
+        x, df = substitute(a, n, b, x, df1)  # Realiza a substituição para encontrar o vetor x
 
-    if full_output:
-        return x, df
+    if full_output:  # Se full_output for True
+        return x, df  # Retorna o vetor x e o DataFrame
     else:
-        return df
+        return df  # Retorna apenas o DataFrame
 
 
 if __name__ == "__main__":
@@ -184,8 +179,8 @@ if __name__ == "__main__":
     # display(df)
     # pp(df["Matriz"].values)
 
-    mat, df = matriz_tringular_superior(mat, full_output=True)
-    pp(mat)
+    # mat, df = matriz_tringular_superior(mat, full_output=True)
+    # pp(mat)
 
     print("Forma final da matriz:")
     df = gauss(mat)
