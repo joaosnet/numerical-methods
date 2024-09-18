@@ -9,7 +9,7 @@ from metodos import bissecao, falsaposicao_modificada, iteracao_linear
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import plotly.graph_objects as go
-from gaussian_elimination import matriz_forma_final
+from gaussian_elimination import gauss
 import array_to_latex as a2l
 import traceback
 
@@ -1057,7 +1057,7 @@ def matriz_preview(mat):
 def markdown(n_clicks, mat):
     # convertendo a string para uma matriz
     mat = eval(mat)
-    _matfinal, df = matriz_forma_final(mat, full_output=True)
+    _matfinal, df = gauss(mat, full_output=True)
 
     texto = """"""
 
@@ -1115,7 +1115,6 @@ def ponto_fixo(n_clicks, intervalo, funcao, interacoes, tolerancia):
                             {"name": i, "id": i, "hideable": True}
                             for i in tabela.columns
                         ],
-                        hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
                         id="table",
                         sort_action="native",
                         style_table={"height": "300px", "overflowY": "auto"},

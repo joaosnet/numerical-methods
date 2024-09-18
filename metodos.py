@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-
 def bissecao(
     a,
     b,
@@ -192,14 +191,16 @@ def iteracao_linear(g, x0, tol=1e-6, maxiter=100, full_output=False):
     xr = x0
     iter = 0
     ea = 100
-
-    while ea > tol and iter < maxiter:
+        
+    while True:
         xrold = xr
         xr = g(xrold)
         iter += 1
         if xr != 0:
             ea = abs((xr - xrold) / xr) * 100
         df.loc[iter] = [iter, xr, ea]
+        if ea < tol or iter >= maxiter:
+            break
 
     if full_output:
         return xr, df, iter
@@ -236,34 +237,59 @@ if __name__ == "__main__":
             return np.cos(np.log(x**2 + 1))
 
     else:
-        import math
 
         def f(x):
-            return math.exp(-x) - x
+            return np.exp(-x) # - x
 
-    # ----------------------------------------
-    import inspect
+    # # ----------------------------------------
+    # import inspect
 
-    # Obtém o código-fonte da função f
-    func_source = inspect.getsource(f)
-    print(f"Para a função:\n{func_source}")
-    raiz, df, iter = bissecao(0, 1, f, full_output=True)
-    print("Raiz:", raiz)
-    print("Iterações:", iter)
-    print(df)
+    # # Obtém o código-fonte da função f
+    # func_source = inspect.getsource(f)
+    # print(f"Para a função:\n{func_source}")
+    # raiz, df, iter = bissecao(0, 1, f, full_output=True)
+    # print("Raiz:", raiz)
+    # print("Iterações:", iter)
+    # print(df)
 
-    from scipy.optimize import bisect
+    # from scipy.optimize import bisect
 
-    # Mmétodo da bisseção com scipy para encontrar a raiz da função no intervalo
-    # [a, b]
-    a = 0
-    b = 1
-    raiz1, converg = bisect(f, a, b, full_output=True)
+    # # Mmétodo da bisseção com scipy para encontrar a raiz da função no intervalo
+    # # [a, b]
+    # a = 0
+    # b = 1
+    # raiz1, converg = bisect(f, a, b, full_output=True)
 
-    print("Verdadeira Raiz:", raiz1)
-    # Comparação
-    print("Diferença:", abs(raiz - raiz1))
+    # print("Verdadeira Raiz:", raiz1)
+    # # Comparação
+    # print("Diferença:", abs(raiz - raiz1))
 
-    from pprint import pprint as pp
+    # from pprint import pprint as pp
 
-    pp(converg)
+    # pp(converg)
+    
+    # TESTE do ponto fixo
+    
+    # print(iteracao_linear(f, 0))
+
+    import plotly.express as px
+    
+    def func1(x):
+        return 2*x**3 - 11
+
+    def func2(x):
+        return 7*x**2 + 17
+
+    def func3(x):
+        return 7*x - 5
+
+    functions = [func1, func2, func3]
+    
+    for i, f in enumerate(functions):
+        fig = px.line(
+            x=np.linspace(-10, 10, 1000),
+            y=[f(x) for x in np.linspace(-10, 10, 1000)],
+            labels={"x": "x", "y": "f(x)"},
+            title=f"Função {i+1}",
+        )
+        fig.show()
