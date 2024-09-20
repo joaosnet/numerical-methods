@@ -5,7 +5,7 @@ import dash_dangerously_set_inner_html
 import numpy as np
 import sympy as sp
 from sympy.parsing.latex import parse_latex
-from metodos import bissecao, falsaposicao_modificada, iteracao_linear
+from metodos import bissecao, falsaposicao_modificada, iteracao_linear, newton_raphson, secant_method
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import plotly.graph_objects as go
@@ -168,6 +168,18 @@ right_column = html.Div(
                     id="ponto_fixo",
                     value="ponto_fixo",
                     label="Método da Iteração Linear (Ponto Fixo)",
+                    children=[],
+                ),
+                dcc.Tab(
+                    id="newton",
+                    value="newton",
+                    label="Método de Newton-Raphson",
+                    children=[],
+                ),
+                dcc.Tab(
+                    id="secant",
+                    value="secant",
+                    label="Método da Secante",
                     children=[],
                 ),
                 dcc.Tab(
@@ -1130,6 +1142,140 @@ def ponto_fixo(n_clicks, intervalo, funcao, interacoes, tolerancia):
     except Exception as e:
         tb = traceback.format_exc()
         resultado = f"Erro ao calcular o método da iteração linear: {e}"
+        return html.Div(
+            children=[
+                html.H5(children=f"{resultado}"),  # Título do método
+                dcc.Markdown(
+                    "{}".format(tb),
+                    style={"font-size": "14pt"},
+                ),
+            ]
+        )
+
+@app.callback(
+    Output("newton", "children"),
+    Input("calcular-bissecao", "n_clicks"),
+    State("intervalo", "value"),
+    State("funcao", "value"),
+    State("interacoes", "value"),
+    State("tolerancia", "value"),
+)
+def newton(n_clicks, intervalo, funcao, interacoes, tolerancia):
+    try:
+        fig = grafico_animado(intervalo, funcao, interacoes, tolerancia, "Newton-Raphson")
+        _, funcao = tratar_funcao(funcao)
+        funcao_simbolica = funcao_latex(funcao)
+        x, tabela, iteracoes = newton_raphson(
+            funcao, intervalo[0], max_iter=interacoes, tol=tolerancia, full_output=True
+        )
+        resultado = f"A raiz da função ${funcao_simbolica}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
+        return [
+            html.Div(
+                children=[
+                    html.Hr(),
+                    dcc.Graph(figure=fig, mathjax=True),
+                ],
+            ),
+            html.Div(
+                children=[
+                    html.H5(
+                        children="Tabela de interções usando Método de Newton-Raphson"
+                    ),  # Título do método
+                    dcc.Markdown(
+                        "{resultado}".format(resultado=resultado),
+                        mathjax=True,
+                        style={"font-size": "14pt"},
+                    ),
+                    html.Hr(),
+                    html.Div(children="Tabela de Iterações:"),
+                    dash_table.DataTable(
+                        tabela.to_dict("records"),
+                        [
+                            {"name": i, "id": i, "hideable": True}
+                            for i in tabela.columns
+                        ],
+                        id="table",
+                        sort_action="native",
+                        style_table={"height": "300px", "overflowY": "auto"},
+                        editable=False,
+                        css=DATA_TABLE_STYLE.get("css"),
+                        page_size=10,
+                        row_deletable=True,
+                        style_header=DATA_TABLE_STYLE.get("style_header"),
+                    ),
+                ],
+            ),
+        ]
+    except Exception as e:
+        tb = traceback.format_exc()
+        resultado = f"Erro ao calcular o Método de Newton-Raphson : {e}"
+        return html.Div(
+            children=[
+                html.H5(children=f"{resultado}"),  # Título do método
+                dcc.Markdown(
+                    "{}".format(tb),
+                    style={"font-size": "14pt"},
+                ),
+            ]
+        )
+        
+@app.callback(
+    Output("secant", "children"),
+    Input("calcular-bissecao", "n_clicks"),
+    State("intervalo", "value"),
+    State("funcao", "value"),
+    State("interacoes", "value"),
+    State("tolerancia", "value"),
+)
+def secante(n_clicks, intervalo, funcao, interacoes, tolerancia):
+    try:
+        fig = grafico_animado(intervalo, funcao, interacoes, tolerancia, "Newton-Raphson")
+        _, funcao = tratar_funcao(funcao)
+        funcao_simbolica = funcao_latex(funcao)
+        x, tabela, iteracoes = secant_method(
+            funcao, intervalo[0], intervalo[1], max_iter=interacoes, tol=tolerancia, full_output=True
+        )
+        resultado = f"A raiz da função ${funcao_simbolica}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
+        return [
+            html.Div(
+                children=[
+                    html.Hr(),
+                    dcc.Graph(figure=fig, mathjax=True),
+                ],
+            ),
+            html.Div(
+                children=[
+                    html.H5(
+                        children="Tabela de interções usando Método da Secante"
+                    ),  # Título do método
+                    dcc.Markdown(
+                        "{resultado}".format(resultado=resultado),
+                        mathjax=True,
+                        style={"font-size": "14pt"},
+                    ),
+                    html.Hr(),
+                    html.Div(children="Tabela de Iterações:"),
+                    dash_table.DataTable(
+                        tabela.to_dict("records"),
+                        [
+                            {"name": i, "id": i, "hideable": True}
+                            for i in tabela.columns
+                        ],
+                        id="table",
+                        sort_action="native",
+                        style_table={"height": "300px", "overflowY": "auto"},
+                        editable=False,
+                        css=DATA_TABLE_STYLE.get("css"),
+                        page_size=10,
+                        row_deletable=True,
+                        style_header=DATA_TABLE_STYLE.get("style_header"),
+                    ),
+                ],
+            ),
+        ]
+    except Exception as e:
+        tb = traceback.format_exc()
+        resultado = f"Erro ao calcular o Método da Secante : {e}"
         return html.Div(
             children=[
                 html.H5(children=f"{resultado}"),  # Título do método

@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import sympy as sp
+
 
 def bissecao(
     a,
@@ -117,7 +119,7 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
     ea = 100
     il = 0
     iu = 0
-    
+
     while ea > es and iter < imax:
         xl_anterior = xl
         xu_anterior = xu
@@ -171,7 +173,8 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
         return xr, df, iter
     else:
         return xr
-    
+
+
 # Método da Iteração Linear (Ponto Fixo)
 def iteracao_linear(g, x0, tol=1e-6, maxiter=100, full_output=False):
     """
@@ -191,7 +194,7 @@ def iteracao_linear(g, x0, tol=1e-6, maxiter=100, full_output=False):
     xr = x0
     iter = 0
     ea = 100
-        
+
     while True:
         xrold = xr
         xr = g(xrold)
@@ -204,6 +207,95 @@ def iteracao_linear(g, x0, tol=1e-6, maxiter=100, full_output=False):
 
     if full_output:
         return xr, df, iter
+    else:
+        return df
+
+
+def newton_raphson(func_expr, x0, tol=1e-6, max_iter=100, full_output=False):
+    x = sp.Symbol("x")
+    f = sp.sympify(func_expr)
+    f_prime = sp.diff(f, x)
+
+    f_lambdified = sp.lambdify(x, f, "numpy")
+    f_prime_lambdified = sp.lambdify(x, f_prime, "numpy")
+
+    df = pd.DataFrame(
+        columns=["Iteração", "Aproximação da Raiz (x_i)", "f(x_i)", "Erro Relativo (%)"]
+    )
+    xi = x0
+    erro = None
+
+    for i in range(max_iter):
+        f_xi = f_lambdified(xi)
+        f_prime_xi = f_prime_lambdified(xi)
+
+        if f_prime_xi == 0:
+            print(f"Derivada nula na iteração {i}. O método foi interrompido.")
+            break
+
+        df.loc[i] = [i, xi, f_xi, erro if erro is not None else "-"]
+
+        x_next = xi - f_xi / f_prime_xi
+
+        if i != 0:
+            erro = abs((xi - x_next) / xi) * 100
+
+        if abs(x_next - xi) < tol:
+            df.loc[i + 1] = [
+                i + 1,
+                x_next,
+                f_lambdified(x_next),
+                abs((x_next - xi) / x_next) * 100,
+            ]
+            break
+
+        xi = x_next
+
+    if full_output:
+        return xi, df, len(df)
+    else:
+        return df
+
+
+def secant_method(func_expr, x0, x1, tol=1e-6, max_iter=100, full_output=False):
+    x = sp.Symbol("x")
+    f = sp.sympify(func_expr)
+    f_lambdified = sp.lambdify(x, f, "numpy")
+
+    df = pd.DataFrame(
+        columns=["Iteração", "Aproximação da Raiz (x_i)", "f(x_i)", "Erro Relativo (%)"]
+    )
+    xi_1, xi = x0, x1
+    erro = None
+
+    for i in range(max_iter):
+        f_xi_1 = f_lambdified(xi_1)
+        f_xi = f_lambdified(xi)
+
+        if f_xi - f_xi_1 == 0:
+            print(f"Erro: Divisão por zero na iteração {i}.")
+            break
+
+        x_next = xi - f_xi * (xi - xi_1) / (f_xi - f_xi_1)
+
+        if i != 0:
+            erro = abs((xi - x_next) / xi) * 100
+
+        df.loc[i] = [i, xi, f_xi, erro if erro is not None else "-"]
+
+        if abs(x_next - xi) < tol:
+            df.loc[i + 1] = [
+                i + 1,
+                x_next,
+                f_lambdified(x_next),
+                abs((x_next - xi) / x_next) * 100,
+            ]
+            break
+
+        xi_1, xi = xi, x_next
+
+    if full_output:
+        return xi, df, len(df)
     else:
         return df
 
@@ -239,7 +331,7 @@ if __name__ == "__main__":
     else:
 
         def f(x):
-            return np.exp(-x) # - x
+            return np.exp(-x)  # - x
 
     # # ----------------------------------------
     # import inspect
@@ -267,29 +359,29 @@ if __name__ == "__main__":
     # from pprint import pprint as pp
 
     # pp(converg)
-    
+
     # TESTE do ponto fixo
-    
+
     # print(iteracao_linear(f, 0))
 
     import plotly.express as px
-    
+
     def func1(x):
-        return 2*x**3 - 11
+        return 2 * x**3 - 11
 
     def func2(x):
-        return 7*x**2 + 17
+        return 7 * x**2 + 17
 
     def func3(x):
-        return 7*x - 5
+        return 7 * x - 5
 
     functions = [func1, func2, func3]
-    
+
     for i, f in enumerate(functions):
         fig = px.line(
             x=np.linspace(-10, 10, 1000),
             y=[f(x) for x in np.linspace(-10, 10, 1000)],
             labels={"x": "x", "y": "f(x)"},
-            title=f"Função {i+1}",
+            title=f"Função {i + 1}",
         )
         fig.show()
