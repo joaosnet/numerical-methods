@@ -96,7 +96,7 @@ def bissecao(
     if full_output:
         return x, df, iteracoes
     else:
-        return x
+        return df
 
 
 def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
@@ -172,7 +172,7 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
     if full_output:
         return xr, df, iter
     else:
-        return xr
+        return df
 
 
 # Método da Iteração Linear (Ponto Fixo)

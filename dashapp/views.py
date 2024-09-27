@@ -5,13 +5,20 @@ import dash_dangerously_set_inner_html
 import numpy as np
 import sympy as sp
 from sympy.parsing.latex import parse_latex
-from metodos import bissecao, falsaposicao_modificada, iteracao_linear, newton_raphson, secant_method
+from metodos import (
+    bissecao,
+    falsaposicao_modificada,
+    iteracao_linear,
+    newton_raphson,
+    secant_method,
+)
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import plotly.graph_objects as go
 from gaussian_elimination import gauss
 import array_to_latex as a2l
 import traceback
+import pandas as pd
 
 # Definindo o estilo da tabela de dados
 DATA_TABLE_STYLE = {
@@ -116,40 +123,23 @@ right_column = html.Div(
     id="right-column",
     # className="eight columns",
     children=[
+        dcc.Store(id="df-Bissec"),
+        dcc.Store(id="df-Falsa"),
         dcc.Tabs(
             id="tabs-methods",
             value="Bisseção",
             children=[
                 dcc.Tab(
+                    id="bissecao",
                     value="Bisseção",
                     label="Bisseção",
-                    children=[
-                        html.Div(
-                            children=[
-                                html.Hr(),
-                                dcc.Graph(id="graph", mathjax=True),
-                            ],
-                        ),
-                        html.Div(
-                            id="tabs",
-                            children=[],
-                        ),
-                    ],
+                    children=[],
                 ),
                 dcc.Tab(
+                    id="falsap-tab",
+                    value="Falsa Posição",
                     label="Falsa Posição",
-                    children=[
-                        html.Div(
-                            children=[
-                                html.Hr(),
-                                dcc.Graph(id="graph_falsa", mathjax=True),
-                            ],
-                        ),
-                        html.Div(
-                            id="falsap-container",
-                            children=[],
-                        ),
-                    ],
+                    children=[],
                 ),
                 dcc.Tab(
                     label="Comparações entre Métodos",
@@ -353,24 +343,57 @@ def funcao_latex(expressao_simbolica):
     return funcao_latex
 
 
-# Função que retornar a tabela de iterações para o método da bisseção
-def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
-    funcao, funcao_simbolica = tratar_funcao(funcao)
+# pathname
+@app.callback(Output("conteudo_pagina", "children"), Input("url", "pathname"))
+def carregar_pagina(pathname):
+    if pathname == "/":
+        return layout_dashboard
 
-    # tratando a função que está em string para uma função que o python entenda
+
+# Chamada para calcular o metodo da bisseção e armazenar o dataframe
+@app.callback(
+    Output("df-Bissec", "data"),
+    Input("calcular-bissecao", "n_clicks"),
+    State("intervalo", "value"),
+    State("funcao", "value"),
+    State("interacoes", "value"),
+    State("tolerancia", "value"),
+)
+def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
+    funcao, _funcao_simbolica = tratar_funcao(funcao)
+
     try:
-        x, df, iteracoes = bissecao(
+        df = bissecao(
             intervalo[0],
             intervalo[1],
             funcao,
             maxiter=interacoes,
             tol=tolerancia,
             disp=False,
-            full_output=True,
         )  # Aumenta o número máximo de iterações
+        print(df.to_dict("records"))
+        return df.to_dict("records")
+    except Exception as e:
+        return [f"Erro ao calcular a bisseção.{e}"]
+
+
+# Chamada para colocar a tabela de iterações na aba de bisseção
+@app.callback(
+    Output("bissecao", "children"),
+    Input("df-Bissec", "data"),
+    State("intervalo", "value"),
+    State("funcao", "value"),
+)
+def tab_bissecao(df, intervalo, funcao):
+    _, funcao_simbolica = tratar_funcao(funcao)
+    df = pd.DataFrame(df)
+    x = df["Aproximação da Raiz"].iloc[-1]
+    iteracoes = len(df)
+    # tratando a função que está em string para uma função que o python entenda
+    try:
         funcao_latex1 = funcao_latex(funcao_simbolica)
         resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
-
+        fig = grafico_animado(intervalo, funcao, df, "Bisseção")
         # renomeando os cabeçalhos das colunas
         df = df.rename(
             columns={
@@ -387,7 +410,110 @@ def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
         # adicionando a coluna da iteração como a primeira coluna
         df.insert(0, "Iteração", range(1, len(df) + 1))
 
-        return [
+        return html.Div(
+            children=[
+                html.Div(
+                    children=[
+                        html.Hr(),
+                        dcc.Graph(figure=fig, id="graph", mathjax=True),
+                    ],
+                ),
+                html.Div(
+                    children=[
+                        html.H5(
+                            children="Tabela de interções usando Método da Bisseção"
+                        ),  # Título do método
+                        dcc.Markdown(
+                            "{resultado}".format(resultado=resultado),
+                            mathjax=True,
+                            style={"font-size": "14pt"},
+                        ),
+                        html.Hr(),
+                        html.Div(children="Tabela de Iterações:"),
+                        dash_table.DataTable(
+                            df.to_dict("records"),
+                            [
+                                {"name": i, "id": i, "hideable": True}
+                                for i in df.columns
+                            ],
+                            hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
+                            id="table",
+                            sort_action="native",
+                            style_table={"height": "300px", "overflowY": "auto"},
+                            editable=False,
+                            dropdown={
+                                "Resource": {
+                                    "clearable": False,
+                                    "options": [
+                                        {"label": i, "value": i}
+                                        for i in ["A", "B", "C", "D"]
+                                    ],
+                                },
+                            },
+                            css=DATA_TABLE_STYLE.get("css"),
+                            page_size=10,
+                            row_deletable=True,
+                            style_data_conditional=[
+                                {
+                                    "if": {
+                                        "filter_query": "{Sinal a} = negativo",
+                                        "column_id": "Limite Inferior (xl)",
+                                    },
+                                    "backgroundColor": "#800000",
+                                    "color": "white",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": "{Sinal a} = positivo",
+                                        "column_id": "Limite Inferior (xl)",
+                                    },
+                                    "backgroundColor": "#ADD8E6",  # Azul claro
+                                    "color": "black",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": "{Sinal b} = negativo",
+                                        "column_id": "Limite Superior (xu)",
+                                    },
+                                    "backgroundColor": "#800000",
+                                    "color": "white",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": "{Sinal b} = positivo",
+                                        "column_id": "Limite Superior (xu)",
+                                    },
+                                    "backgroundColor": "#ADD8E6",  # Azul claro
+                                    "color": "black",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": "{Sinal x} = negativo",
+                                        "column_id": "Aproximação da Raiz (xr)",
+                                    },
+                                    "backgroundColor": "#800000",
+                                    "color": "white",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": "{Sinal x} = positivo",
+                                        "column_id": "Aproximação da Raiz (xr)",
+                                    },
+                                    "backgroundColor": "#ADD8E6",  # Azul claro
+                                    "color": "black",
+                                },
+                            ],
+                            style_header=DATA_TABLE_STYLE.get("style_header"),
+                        ),
+                    ],
+                ),
+            ]
+        )
+    except Exception as e:
+        # traceback.print_exc()
+        resultado = f"O método da bisseção não convergiu após {iteracoes} iterações. Por que {e}"
+
+        return html.Div([
             html.H5(
                 children="Tabela de interções usando Método da Bisseção"
             ),  # Título do método
@@ -396,245 +522,118 @@ def calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia):
                 mathjax=True,
                 style={"font-size": "14pt"},
             ),
-            html.Hr(),
-            html.Div(children="Tabela de Iterações:"),
-            dash_table.DataTable(
-                df.to_dict("records"),
-                [{"name": i, "id": i, "hideable": True} for i in df.columns],
-                hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
-                id="table",
-                sort_action="native",
-                style_table={"height": "300px", "overflowY": "auto"},
-                editable=False,
-                dropdown={
-                    "Resource": {
-                        "clearable": False,
-                        "options": [
-                            {"label": i, "value": i} for i in ["A", "B", "C", "D"]
-                        ],
-                    },
-                },
-                css=DATA_TABLE_STYLE.get("css"),
-                page_size=10,
-                row_deletable=True,
-                style_data_conditional=[
-                    {
-                        "if": {
-                            "filter_query": "{Sinal a} = negativo",
-                            "column_id": "Limite Inferior (xl)",
-                        },
-                        "backgroundColor": "#800000",
-                        "color": "white",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal a} = positivo",
-                            "column_id": "Limite Inferior (xl)",
-                        },
-                        "backgroundColor": "#ADD8E6",  # Azul claro
-                        "color": "black",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal b} = negativo",
-                            "column_id": "Limite Superior (xu)",
-                        },
-                        "backgroundColor": "#800000",
-                        "color": "white",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal b} = positivo",
-                            "column_id": "Limite Superior (xu)",
-                        },
-                        "backgroundColor": "#ADD8E6",  # Azul claro
-                        "color": "black",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal x} = negativo",
-                            "column_id": "Aproximação da Raiz (xr)",
-                        },
-                        "backgroundColor": "#800000",
-                        "color": "white",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal x} = positivo",
-                            "column_id": "Aproximação da Raiz (xr)",
-                        },
-                        "backgroundColor": "#ADD8E6",  # Azul claro
-                        "color": "black",
-                    },
-                ],
-                style_header=DATA_TABLE_STYLE.get("style_header"),
-            ),
-        ]
-    except Exception as e:
-        # traceback.print_exc()
-        resultado = f"O método da bisseção não convergiu após {interacoes} iterações. Por que {e}"
-
-    return [
-        html.H5(
-            children="Tabela de interções usando Método da Bisseção"
-        ),  # Título do método
-        dcc.Markdown(
-            "{resultado}".format(resultado=resultado),
-            mathjax=True,
-            style={"font-size": "14pt"},
-        ),
-    ]
+        ])
 
 
-# Função que retornar a tabela de iterações para o método da falsa posição
-def calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia):
-    funcao, funcao_simbolica = tratar_funcao(funcao)
-
-    # tratando a função que está em string para uma função que o python entenda
+# Chamada para calcular o metodo da falsa posição e armazenar o dataframe
+@app.callback(
+    Output("df-Falsa", "data"),
+    Input("calcular-bissecao", "n_clicks"),
+    State("intervalo", "value"),
+    State("funcao", "value"),
+    State("interacoes", "value"),
+    State("tolerancia", "value"),
+)
+def calcular_falsa(_clicks, intervalo, funcao, interacoes, tolerancia):
+    funcao, _funcao_simbolica = tratar_funcao(funcao)
 
     try:
-        falsaposicao_raiz, df, iteracoes = falsaposicao_modificada(
+        df = falsaposicao_modificada(
             intervalo[0],
             intervalo[1],
             funcao,
             imax=interacoes,
             es=tolerancia,
-            full_output=True,
         )  # Aumenta o número máximo de iterações
-        funcao_latex1 = funcao_latex(funcao_simbolica)
-        resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {falsaposicao_raiz} com {iteracoes} iterações."
-        return [
-            html.H5(
-                children="Tabela de interções usando Método da falsa posição ou interpolação"
-            ),  # Título do método
-            dcc.Markdown(
-                "{resultado}".format(resultado=resultado),
-                mathjax=True,
-                style={"font-size": "14pt"},
-            ),
-            html.Hr(),
-            html.Div(children="Tabela de Iterações:"),
-            dash_table.DataTable(
-                df.to_dict("records"),
-                [{"name": i, "id": i, "hideable": True} for i in df.columns],
-                hidden_columns=["f(xl)", "f(xu)", "Erro Relativo (%)"],
-                id="table",
-                sort_action="native",
-                style_table={"height": "300px", "overflowY": "auto"},
-                editable=False,
-                dropdown={
-                    "Resource": {
-                        "clearable": False,
-                        "options": [
-                            {"label": i, "value": i} for i in ["A", "B", "C", "D"]
-                        ],
-                    },
-                },
-                css=DATA_TABLE_STYLE.get("css"),
-                page_size=10,
-                row_deletable=True,
-                style_data_conditional=[
-                    {
-                        "if": {
-                            "filter_query": "{Sinal a} = negativo",
-                            "column_id": "Limite Inferior (xl)",
-                        },
-                        "backgroundColor": "#800000",
-                        "color": "white",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal a} = positivo",
-                            "column_id": "Limite Inferior (xl)",
-                        },
-                        "backgroundColor": "#ADD8E6",  # Azul claro
-                        "color": "black",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal b} = negativo",
-                            "column_id": "Limite Superior (xu)",
-                        },
-                        "backgroundColor": "#800000",
-                        "color": "white",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal b} = positivo",
-                            "column_id": "Limite Superior (xu)",
-                        },
-                        "backgroundColor": "#ADD8E6",  # Azul claro
-                        "color": "black",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal x} = negativo",
-                            "column_id": "Aproximação da Raiz (xr)",
-                        },
-                        "backgroundColor": "#800000",
-                        "color": "white",
-                    },
-                    {
-                        "if": {
-                            "filter_query": "{Sinal x} = positivo",
-                            "column_id": "Aproximação da Raiz (xr)",
-                        },
-                        "backgroundColor": "#ADD8E6",  # Azul claro
-                        "color": "black",
-                    },
-                ],
-                style_header=DATA_TABLE_STYLE.get("style_header"),
-            ),
-        ]
+        return df.to_dict("records")
     except Exception as e:
-        resultado = f"O método da falsa posição não convergiu após {interacoes} iterações. Por que {e}"
+        return [f"Erro ao calcular a falsa posição.{e}"]
 
-        return [
+
+# Chamada para colocar a tabela de iterações na aba de Falsa Posição
+@app.callback(
+    Output("falsap-tab", "children"),
+    Input("df-Falsa", "data"),
+    State("intervalo", "value"),
+    State("funcao", "value"),
+)
+def tab_falsaposicao(df, intervalo, funcao):
+    _, funcao_simbolica = tratar_funcao(funcao)
+    df = pd.DataFrame(df)
+    x = df["Aproximação da Raiz (xr)"].iloc[-1]
+    iteracoes = len(df)
+    # tratando a função que está em string para uma função que o python entenda
+    try:
+        funcao_latex1 = funcao_latex(funcao_simbolica)
+        resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
+
+        fig = grafico_animado(intervalo, funcao, df, "Falsa Posição")
+
+        return html.Div(
+            children=[
+                html.Div(
+                    children=[
+                        html.Hr(),
+                        dcc.Graph(figure=fig, mathjax=True),
+                    ],
+                ),
+                html.Div(
+                    children=[
+                        html.H5(
+                            children="Tabela de interções usando Método da Falsa Posição"
+                        ),  # Título do método
+                        dcc.Markdown(
+                            "{resultado}".format(resultado=resultado),
+                            mathjax=True,
+                            style={"font-size": "14pt"},
+                        ),
+                        html.Hr(),
+                        html.Div(children="Tabela de Iterações:"),
+                        dash_table.DataTable(
+                            df.to_dict("records"),
+                            [
+                                {"name": i, "id": i, "hideable": True}
+                                for i in df.columns
+                            ],
+                            id="table",
+                            sort_action="native",
+                            style_table={"height": "300px", "overflowY": "auto"},
+                            editable=False,
+                            dropdown={
+                                "Resource": {
+                                    "clearable": False,
+                                    "options": [
+                                        {"label": i, "value": i}
+                                        for i in ["A", "B", "C", "D"]
+                                    ],
+                                },
+                            },
+                            css=DATA_TABLE_STYLE.get("css"),
+                            page_size=10,
+                            row_deletable=True,
+                            style_header=DATA_TABLE_STYLE.get("style_header"),
+                        ),
+                    ],
+                ),
+            ]
+        )
+    except Exception as e:
+        # traceback.print_exc()
+        resultado = f"O método da Falsa Posição não convergiu após {iteracoes} iterações. Por que {e}"
+
+        return html.Div([
             html.H5(
-                children="Tabela de interções usando Método da falsa posição ou interpolação"
+                children="Tabela de interções usando Método da Falsa Posição"
             ),  # Título do método
             dcc.Markdown(
                 "{resultado}".format(resultado=resultado),
                 mathjax=True,
                 style={"font-size": "14pt"},
             ),
-        ]
+        ])
 
 
-# pathname
-@app.callback(Output("conteudo_pagina", "children"), Input("url", "pathname"))
-def carregar_pagina(pathname):
-    if pathname == "/":
-        return layout_dashboard
-
-
-# Chamada para colocar a tabela de iterações na aba de bisseção
-@app.callback(
-    Output("tabs", "children"),
-    Input("calcular-bissecao", "n_clicks"),
-    State("intervalo", "value"),
-    State("funcao", "value"),
-    State("interacoes", "value"),
-    State("tolerancia", "value"),
-)
-def tab_bissecao_tabela(n_clicks, intervalo, funcao, interacoes, tolerancia):
-    return calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia)
-
-
-# Chamada para colocar a tabela de iterações na aba de falsa posição
-@app.callback(
-    Output("falsap-container", "children"),
-    Input("calcular-bissecao", "n_clicks"),
-    State("intervalo", "value"),
-    State("funcao", "value"),
-    State("interacoes", "value"),
-    State("tolerancia", "value"),
-)
-def tab_falsa_tabela(n_clicks, intervalo, funcao, interacoes, tolerancia):
-    return calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia)
-
-
-def grafico_animado(intervalo, funcao, interacoes, tolerancia, saida):
+def grafico_animado(intervalo, funcao, df, saida):
     try:
         funcao, funcao_simbolica = tratar_funcao(funcao)
         funcao_latex1 = funcao_latex(funcao_simbolica)
@@ -739,16 +738,6 @@ def grafico_animado(intervalo, funcao, interacoes, tolerancia, saida):
 
         # Calcular as iterações e adicionar os frames
         if saida == "Bisseção":
-            _x1, df, _iter = bissecao(
-                intervalo[0],
-                intervalo[1],
-                funcao,
-                tol=tolerancia,
-                maxiter=interacoes,
-                disp=False,
-                full_output=True,
-            )
-
             for i, row in df.iterrows():
                 frame = {"data": [], "name": str(i)}
                 frame["data"].append(
@@ -809,15 +798,6 @@ def grafico_animado(intervalo, funcao, interacoes, tolerancia, saida):
                 sliders_dict["steps"].append(slider_step)
 
         elif saida == "Falsa Posição":
-            _x1, df, _iter = falsaposicao_modificada(
-                intervalo[0],
-                intervalo[1],
-                funcao,
-                imax=interacoes,
-                es=tolerancia,
-                full_output=True,
-            )
-
             for i, row in df.iterrows():
                 frame = {"data": [], "name": str(i)}
                 # Reta da Falsa Posição
@@ -858,50 +838,46 @@ def grafico_animado(intervalo, funcao, interacoes, tolerancia, saida):
                 }
                 sliders_dict["steps"].append(slider_step)
 
-        # elif saida == "Ponto Fixo":
-        #     df = iteracao_linear(
-        #         funcao, intervalo[0], maxiter=interacoes, tol=tolerancia
-        #     )
+        elif saida == "Ponto Fixo":
+            for i, row in df.iterrows():
+                frame = {"data": [], "name": str(i)}
+                # Reta do Ponto fixo
+                # frame["data"].append(
+                #     go.Scatter(
+                #         x=[
+                #             row["Início do Intervalo (xl)"],
+                #             row["Final do Intervalo (xu)"],
+                #         ],
+                #         y=[row["f(xl)"], row["f(xu)"]],
+                #         mode="lines",
+                #         name="Intervalo [a, b]",
+                #     )
+                # )
 
-        #     for i, row in df.iterrows():
-        #         frame = {"data": [], "name": str(i)}
-        #         # Reta da Falsa Posição
-        #         frame["data"].append(
-        #             go.Scatter(
-        #                 x=[
-        #                     row["Início do Intervalo (xl)"],
-        #                     row["Final do Intervalo (xu)"],
-        #                 ],
-        #                 y=[row["f(xl)"], row["f(xu)"]],
-        #                 mode="lines",
-        #                 name="Intervalo [a, b]",
-        #             )
-        #         )
+                # frame["data"].append(
+                #     go.Scatter(
+                #         x=[row["Aproximação da Raiz (xr)"]],
+                #         y=[0],
+                #         mode="markers",
+                #         name="Aproximação da Raiz",
+                #         marker=dict(color="red", size=10),
+                #     )
+                # )
 
-        #         frame["data"].append(
-        #             go.Scatter(
-        #                 x=[row["Aproximação da Raiz (xr)"]],
-        #                 y=[0],
-        #                 mode="markers",
-        #                 name="Aproximação da Raiz",
-        #                 marker=dict(color="red", size=10),
-        #             )
-        #         )
-
-        #         fig_dict["frames"].append(frame)
-        #         slider_step = {
-        #             "args": [
-        #                 [i],
-        #                 {
-        #                     "frame": {"duration": 300, "redraw": False},
-        #                     "mode": "immediate",
-        #                     "transition": {"duration": 300},
-        #                 },
-        #             ],
-        #             "label": i,
-        #             "method": "animate",
-        #         }
-        #         sliders_dict["steps"].append(slider_step)
+                # fig_dict["frames"].append(frame)
+                # slider_step = {
+                #     "args": [
+                #         [i],
+                #         {
+                #             "frame": {"duration": 300, "redraw": False},
+                #             "mode": "immediate",
+                #             "transition": {"duration": 300},
+                #         },
+                #     ],
+                #     "label": i,
+                #     "method": "animate",
+                # }
+                # sliders_dict["steps"].append(slider_step)
 
         fig_dict["layout"]["sliders"] = [sliders_dict]
 
@@ -911,47 +887,16 @@ def grafico_animado(intervalo, funcao, interacoes, tolerancia, saida):
         # removendo o gráfico e retornando nada
         if "Não há raiz no intervalo fornecido." in str(e):
             traceback.print_exc()
-            fig = go.Figure()
-            return fig
+            return Exception
         elif (
             "Não há mudança de sinal no intervalo fornecido. O método da falsa posição requer que f(xl) e f(xu) tenham sinais opostos."
             in str(e)
         ):
             traceback.print_exc()
-            fig = go.Figure()
-            return fig
+            return Exception
         else:
             traceback.print_exc()
-            fig = go.Figure()
-            return fig
-
-
-# Callback para atualizar o gráfico com base nos inputs
-@app.callback(
-    Output("graph", "figure"),
-    Input("calcular-bissecao", "n_clicks"),
-    State("intervalo", "value"),
-    State("funcao", "value"),
-    State("interacoes", "value"),
-    State("tolerancia", "value"),
-)
-def atualizar_grafico(n_clicks, intervalo, funcao, interacoes, tolerancia):
-    saida = "Bisseção"
-    return grafico_animado(intervalo, funcao, interacoes, tolerancia, saida)
-
-
-# Callback para atualizar o gráfico do Método da Falsa posicao com base nos inputs
-@app.callback(
-    Output("graph_falsa", "figure"),
-    Input("calcular-bissecao", "n_clicks"),
-    State("intervalo", "value"),
-    State("funcao", "value"),
-    State("interacoes", "value"),
-    State("tolerancia", "value"),
-)
-def atualizar_grafico2(n_clicks, intervalo, funcao, interacoes, tolerancia):
-    saida = "Falsa Posição"
-    return grafico_animado(intervalo, funcao, interacoes, tolerancia, saida)
+            return Exception
 
 
 # Callback client-side para atualizar o valor do input 'funcao' com o valor do 'math-field'
@@ -1014,27 +959,220 @@ def switch_theme(_, theme):
 # Chamada para colocar a tabela de iterações na aba de bisseção
 @app.callback(
     Output("tabela_bissec", "children"),
-    Input("calcular-bissecao", "n_clicks"),
+    Input("df-Bissec", "data"),
     State("intervalo", "value"),
     State("funcao", "value"),
     State("interacoes", "value"),
     State("tolerancia", "value"),
 )
-def tab_comp_bissecao_tabela(n_clicks, intervalo, funcao, interacoes, tolerancia):
-    return calcular_bissecao_tabela(intervalo, funcao, interacoes, tolerancia)
+def tab_comp_bissecao_tabela(df, intervalo, funcao, interacoes, tolerancia):
+    df = pd.DataFrame(df)
+    _, funcao_simbolica = tratar_funcao(funcao)
+    f = funcao_latex(funcao_simbolica)
+    resultado = f"A raiz da função ${f}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {df['Aproximação da Raiz'].iloc[-1]} com {len(df)} iterações."
+    return (
+        html.Div(
+            children=[
+                html.H5(
+                    children="Tabela de interções usando Método da Bisseção"
+                ),  # Título do método
+                dcc.Markdown(
+                    "{resultado}".format(resultado=resultado),
+                    mathjax=True,
+                    style={"font-size": "14pt"},
+                ),
+                html.Hr(),
+                html.Div(children="Tabela de Iterações:"),
+                dash_table.DataTable(
+                    df.to_dict("records"),
+                    [{"name": i, "id": i, "hideable": True} for i in df.columns],
+                    hidden_columns=["Sinal a", "Sinal b", "Sinal x"],
+                    id="table",
+                    sort_action="native",
+                    style_table={"height": "300px", "overflowY": "auto"},
+                    editable=False,
+                    dropdown={
+                        "Resource": {
+                            "clearable": False,
+                            "options": [
+                                {"label": i, "value": i} for i in ["A", "B", "C", "D"]
+                            ],
+                        },
+                    },
+                    css=DATA_TABLE_STYLE.get("css"),
+                    page_size=10,
+                    row_deletable=True,
+                    style_data_conditional=[
+                        {
+                            "if": {
+                                "filter_query": "{Sinal a} = negativo",
+                                "column_id": "Limite Inferior (xl)",
+                            },
+                            "backgroundColor": "#800000",
+                            "color": "white",
+                        },
+                        {
+                            "if": {
+                                "filter_query": "{Sinal a} = positivo",
+                                "column_id": "Limite Inferior (xl)",
+                            },
+                            "backgroundColor": "#ADD8E6",  # Azul claro
+                            "color": "black",
+                        },
+                        {
+                            "if": {
+                                "filter_query": "{Sinal b} = negativo",
+                                "column_id": "Limite Superior (xu)",
+                            },
+                            "backgroundColor": "#800000",
+                            "color": "white",
+                        },
+                        {
+                            "if": {
+                                "filter_query": "{Sinal b} = positivo",
+                                "column_id": "Limite Superior (xu)",
+                            },
+                            "backgroundColor": "#ADD8E6",  # Azul claro
+                            "color": "black",
+                        },
+                        {
+                            "if": {
+                                "filter_query": "{Sinal x} = negativo",
+                                "column_id": "Aproximação da Raiz (xr)",
+                            },
+                            "backgroundColor": "#800000",
+                            "color": "white",
+                        },
+                        {
+                            "if": {
+                                "filter_query": "{Sinal x} = positivo",
+                                "column_id": "Aproximação da Raiz (xr)",
+                            },
+                            "backgroundColor": "#ADD8E6",  # Azul claro
+                            "color": "black",
+                        },
+                    ],
+                    style_header=DATA_TABLE_STYLE.get("style_header"),
+                ),
+            ],
+        ),
+    )
 
 
 # Chamada para colocar a tabela de iterações na aba de falsa posição
 @app.callback(
     Output("tabela_falsa", "children"),
-    Input("calcular-bissecao", "n_clicks"),
+    Input("df-Falsa", "data"),
     State("intervalo", "value"),
     State("funcao", "value"),
     State("interacoes", "value"),
     State("tolerancia", "value"),
 )
-def tab_comp_falsa_tabela(n_clicks, intervalo, funcao, interacoes, tolerancia):
-    return calcular_falsa_posicao_tabela(intervalo, funcao, interacoes, tolerancia)
+def tab_comp_falsa_tabela(df, intervalo, funcao, interacoes, tolerancia):
+    funcao, funcao_simbolica = tratar_funcao(funcao)
+
+    # tratando a função que está em string para uma função que o python entenda
+
+    try:
+        df = pd.DataFrame(df)
+        funcao_latex1 = funcao_latex(funcao_simbolica)
+        resultado = f"A raiz da função ${funcao_latex1}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {df['Aproximação da Raiz (xr)'].iloc[-1]} com {len(df)} iterações."
+        return [
+            html.H5(
+                children="Tabela de interções usando Método da falsa posição ou interpolação"
+            ),  # Título do método
+            dcc.Markdown(
+                "{resultado}".format(resultado=resultado),
+                mathjax=True,
+                style={"font-size": "14pt"},
+            ),
+            html.Hr(),
+            html.Div(children="Tabela de Iterações:"),
+            dash_table.DataTable(
+                df.to_dict("records"),
+                [{"name": i, "id": i, "hideable": True} for i in df.columns],
+                hidden_columns=["f(xl)", "f(xu)", "Erro Relativo (%)"],
+                id="table",
+                sort_action="native",
+                style_table={"height": "300px", "overflowY": "auto"},
+                editable=False,
+                dropdown={
+                    "Resource": {
+                        "clearable": False,
+                        "options": [
+                            {"label": i, "value": i} for i in ["A", "B", "C", "D"]
+                        ],
+                    },
+                },
+                css=DATA_TABLE_STYLE.get("css"),
+                page_size=10,
+                row_deletable=True,
+                style_data_conditional=[
+                    {
+                        "if": {
+                            "filter_query": "{Sinal a} = negativo",
+                            "column_id": "Limite Inferior (xl)",
+                        },
+                        "backgroundColor": "#800000",
+                        "color": "white",
+                    },
+                    {
+                        "if": {
+                            "filter_query": "{Sinal a} = positivo",
+                            "column_id": "Limite Inferior (xl)",
+                        },
+                        "backgroundColor": "#ADD8E6",  # Azul claro
+                        "color": "black",
+                    },
+                    {
+                        "if": {
+                            "filter_query": "{Sinal b} = negativo",
+                            "column_id": "Limite Superior (xu)",
+                        },
+                        "backgroundColor": "#800000",
+                        "color": "white",
+                    },
+                    {
+                        "if": {
+                            "filter_query": "{Sinal b} = positivo",
+                            "column_id": "Limite Superior (xu)",
+                        },
+                        "backgroundColor": "#ADD8E6",  # Azul claro
+                        "color": "black",
+                    },
+                    {
+                        "if": {
+                            "filter_query": "{Sinal x} = negativo",
+                            "column_id": "Aproximação da Raiz (xr)",
+                        },
+                        "backgroundColor": "#800000",
+                        "color": "white",
+                    },
+                    {
+                        "if": {
+                            "filter_query": "{Sinal x} = positivo",
+                            "column_id": "Aproximação da Raiz (xr)",
+                        },
+                        "backgroundColor": "#ADD8E6",  # Azul claro
+                        "color": "black",
+                    },
+                ],
+                style_header=DATA_TABLE_STYLE.get("style_header"),
+            ),
+        ]
+    except Exception as e:
+        resultado = f"O método da falsa posição não convergiu após {interacoes} iterações. Por que {e}"
+
+        return [
+            html.H5(
+                children="Tabela de interções usando Método da falsa posição ou interpolação"
+            ),  # Título do método
+            dcc.Markdown(
+                "{resultado}".format(resultado=resultado),
+                mathjax=True,
+                style={"font-size": "14pt"},
+            ),
+        ]
 
 
 # callback para previsualizar a matriz
@@ -1095,12 +1233,12 @@ def markdown(n_clicks, mat):
 )
 def ponto_fixo(n_clicks, intervalo, funcao, interacoes, tolerancia):
     try:
-        fig = grafico_animado(intervalo, funcao, interacoes, tolerancia, "Ponto Fixo")
-        funcao, funcao_simbolica = tratar_funcao(funcao)
+        funcao1, funcao_simbolica = tratar_funcao(funcao)
         funcao_simbolica = funcao_latex(funcao_simbolica)
         x, tabela, iteracoes = iteracao_linear(
-            funcao, intervalo[0], maxiter=interacoes, tol=tolerancia, full_output=True
+            funcao1, intervalo[0], maxiter=interacoes, tol=tolerancia, full_output=True
         )
+        fig = grafico_animado(intervalo, funcao, tabela, "Ponto Fixo")
         resultado = f"A raiz da função ${funcao_simbolica}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
         return [
             html.Div(
@@ -1152,6 +1290,7 @@ def ponto_fixo(n_clicks, intervalo, funcao, interacoes, tolerancia):
             ]
         )
 
+
 @app.callback(
     Output("newton", "children"),
     Input("calcular-bissecao", "n_clicks"),
@@ -1162,12 +1301,12 @@ def ponto_fixo(n_clicks, intervalo, funcao, interacoes, tolerancia):
 )
 def newton(n_clicks, intervalo, funcao, interacoes, tolerancia):
     try:
-        fig = grafico_animado(intervalo, funcao, interacoes, tolerancia, "Newton-Raphson")
-        _, funcao = tratar_funcao(funcao)
-        funcao_simbolica = funcao_latex(funcao)
+        _, funcao1 = tratar_funcao(funcao)
+        funcao_simbolica = funcao_latex(funcao1)
         x, tabela, iteracoes = newton_raphson(
-            funcao, intervalo[0], max_iter=interacoes, tol=tolerancia, full_output=True
+            funcao1, intervalo[0], max_iter=interacoes, tol=tolerancia, full_output=True
         )
+        fig = grafico_animado(intervalo, funcao, tabela, "Newton-Raphson")
         resultado = f"A raiz da função ${funcao_simbolica}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
         return [
             html.Div(
@@ -1218,7 +1357,8 @@ def newton(n_clicks, intervalo, funcao, interacoes, tolerancia):
                 ),
             ]
         )
-        
+
+
 @app.callback(
     Output("secant", "children"),
     Input("calcular-bissecao", "n_clicks"),
@@ -1229,12 +1369,17 @@ def newton(n_clicks, intervalo, funcao, interacoes, tolerancia):
 )
 def secante(n_clicks, intervalo, funcao, interacoes, tolerancia):
     try:
-        fig = grafico_animado(intervalo, funcao, interacoes, tolerancia, "Newton-Raphson")
-        _, funcao = tratar_funcao(funcao)
-        funcao_simbolica = funcao_latex(funcao)
+        _, funcao1 = tratar_funcao(funcao)
+        funcao_simbolica = funcao_latex(funcao1)
         x, tabela, iteracoes = secant_method(
-            funcao, intervalo[0], intervalo[1], max_iter=interacoes, tol=tolerancia, full_output=True
+            funcao1,
+            intervalo[0],
+            intervalo[1],
+            max_iter=interacoes,
+            tol=tolerancia,
+            full_output=True,
         )
+        fig = grafico_animado(intervalo, funcao, tabela, "Secante")
         resultado = f"A raiz da função ${funcao_simbolica}$ no intervalo [{intervalo[0]}, {intervalo[1]}] é {x} com {iteracoes} iterações."
         return [
             html.Div(
