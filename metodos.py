@@ -119,6 +119,7 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
     ea = 100
     il = 0
     iu = 0
+    error_message = ""
 
     while ea > es and iter < imax:
         xl_anterior = xl
@@ -129,15 +130,18 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
 
         dif_intervalos = fl - fu
 
-        if dif_intervalos == 0:
-            dif_intervalos = fu - fl
+        if abs(dif_intervalos) < 1e-10:  # Evita divisão por zero
+            xr = (xl + xu) / 2
+        else:
+            xr = xu - fu * (xl - xu) / dif_intervalos
 
-        xr = xu - fu * (xl - xu) / dif_intervalos
         fr = f(xr)
         iter += 1
 
         if xr != 0:
             ea = abs((xr - xrold) / xr) * 100
+        else:
+            ea = 0
 
         test = fl * fr
 
@@ -147,14 +151,14 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
             iu = 0
             il += 1
             if il >= 2:
-                fl /= 2
+                fl = fl / 2 if fl != 0 else fl
         elif test > 0:
             xl = xr
             fl = f(xl)
             il = 0
             iu += 1
             if iu >= 2:
-                fu /= 2
+                fu = fu / 2 if fu != 0 else fu
         else:
             ea = 0
 
@@ -168,6 +172,12 @@ def falsaposicao_modificada(xl, xu, f, es=0.0001, imax=50, full_output=False):
             fr,
             ea if ea is not None else "-",
         ]
+
+        if np.isinf(xr) or np.isnan(xr):
+            error_message += f"Iteração {iter}: xr = {xr}, ea = {ea}\n"
+        
+        if np.isinf(ea) or np.isnan(ea):
+            error_message += f"Iteração {iter}: xr = {xr}, ea = {ea}\n"
 
     if full_output:
         return xr, df, iter
@@ -194,19 +204,37 @@ def iteracao_linear(g, x0, tol=1e-6, maxiter=100, full_output=False):
     xr = x0
     iter = 0
     ea = 100
+    error_message = ""
 
-    while True:
+    while iter < maxiter:
         xrold = xr
-        xr = g(xrold)
-        iter += 1
-        if xr != 0:
-            ea = abs((xr - xrold) / xr) * 100
-        df.loc[iter] = [iter, xr, ea]
-        if ea < tol or iter >= maxiter:
+        try:
+            xr = g(xrold)
+        except OverflowError:
+            error_message += f"Overflow ocorreu na iteração {iter}. O método divergiu.\n"
             break
 
+        iter += 1
+        
+        if np.isnan(xr) or np.isinf(xr):
+            error_message += f"O método divergiu na iteração {iter}.\n"
+            break
+
+        if xr != 0:
+            ea = abs((xr - xrold) / xr) * 100
+        else:
+            ea = 0
+
+        df.loc[iter] = [iter, xr, ea]
+        
+        if ea < tol:
+            break
+
+    if iter == maxiter:
+        error_message += "O método atingiu o número máximo de iterações sem convergir.\n"
+
     if full_output:
-        return xr, df, iter
+        return xr, df, iter, error_message
     else:
         return df
 

@@ -19,6 +19,8 @@ from gaussian_elimination import gauss
 import array_to_latex as a2l
 import traceback
 import pandas as pd
+from metodos_range_kutta import solve_ode, create_plots, create_table
+from dash_resizable_panels import Panel, PanelGroup, PanelResizeHandle
 
 # Definindo o estilo da tabela de dados
 DATA_TABLE_STYLE = {
@@ -209,6 +211,96 @@ right_column = html.Div(
                         ),
                     ],
                 ),
+                dcc.Tab(
+                    id="runge_kutta",
+                    value="runge_kutta",
+                    label="Método de Runge-Kutta de 3ª Ordem e 4ª Ordem",
+                    children=[
+                        PanelGroup(
+                            direction="horizontal",
+                            children=[
+                                Panel(
+                                    id="panel-1",
+                                    style={"padding": "10px"},
+                                    defaultSizePercentage=85,
+                                    children=[
+                                        html.Div(
+                                            children=[
+                                                html.Div(id="rk-output"),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                                PanelResizeHandle(
+                                    html.Div(
+                                        style={
+                                            "backgroundColor": "white",
+                                            "height": "100%",
+                                            "width": "5px",
+                                        }
+                                    )
+                                ),
+                                Panel(
+                                    id="panel-2",
+                                    children=[
+                                        html.Div(
+                                            children=[
+                                                html.H1("Método de Runge-Kutta de 3ª Ordem e 4ª Ordem"),
+                                                html.Label(
+                                                    "Equação Diferencial (em termos de x e y):"
+                                                ),
+                                                html.Div(
+                                                    [
+                                                        dash_dangerously_set_inner_html.DangerouslySetInnerHTML(r"""
+                                                    <math-field id="rk-mathlive-input" style="width: 100%;">4*exp(0.8*x) - 0.5*y</math-field>
+                                                """),
+                                                    ],
+                                                    id="rk-mathlive-container",
+                                                ),
+                                                dcc.Input(
+                                                    id="rk-equation",
+                                                    type="text",
+                                                    value="4*exp(0.8*x) - 0.5*y",
+                                                    style={"width": "50%"},
+                                                ),
+                                                html.Br(),
+                                                html.Label("Valor inicial de x:"),
+                                                dcc.Input(
+                                                    id="rk-x0", type="number", value=0
+                                                ),
+                                                html.Br(),
+                                                html.Label("Valor inicial de y:"),
+                                                dcc.Input(
+                                                    id="rk-y0", type="number", value=2
+                                                ),
+                                                html.Br(),
+                                                html.Label("Valor final de x:"),
+                                                dcc.Input(
+                                                    id="rk-xf", type="number", value=4
+                                                ),
+                                                html.Br(),
+                                                html.Label(
+                                                    "Tamanho dos passos h (separados por vírgula):"
+                                                ),
+                                                dcc.Input(
+                                                    id="rk-h",
+                                                    type="text",
+                                                    value="1, 0.1, 0.01",
+                                                ),
+                                                html.Br(),
+                                                html.Button(
+                                                    "Calcular",
+                                                    id="calcular-rk",
+                                                    n_clicks=0,
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        )
+                    ],
+                ),
             ],
         ),
     ],
@@ -296,6 +388,65 @@ app.layout = dmc.MantineProvider(
 )
 
 
+@app.callback(
+    Output("rk-output", "children"),
+    Input("calcular-rk", "n_clicks"),
+    State("rk-equation", "value"),
+    State("rk-x0", "value"),
+    State("rk-y0", "value"),
+    State("rk-xf", "value"),
+    State("rk-h", "value"),
+)
+def calcular_runge_kutta(n_clicks, equation, x0, y0, xf, h_values):
+    try:
+        sp.Symbol("x")
+        sp.Symbol("y")
+        func_expr = sp.sympify(equation)
+        h_values = [float(h.strip()) for h in h_values.split(",")]
+        x0 = float(x0)
+        y0 = float(y0)
+        xf = float(xf)
+
+        results, x_analytic, y_analytic = solve_ode(func_expr, x0, y0, xf, h_values)
+        fig = create_plots(results, x_analytic, y_analytic, func_str=str(func_expr))
+
+        # Criar tabela de resultados
+        df = create_table(results)
+
+        return [
+            dcc.Graph(figure=fig),
+            dash_table.DataTable(
+                data=df.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df.columns],
+                style_table={"height": "300px", "overflowY": "auto"},
+                page_size=20,
+            ),
+        ]
+    except Exception as e:
+        return html.Div(f"Erro: {str(e)}")
+
+
+# Callback client-side para atualizar o valor do input rk-equation com o valor do rk-mathlive-input
+app.clientside_callback(
+    """
+    function(children) {
+        const mathField = document.getElementById('rk-mathlive-input');
+        if (mathField) {
+            mathField.addEventListener('input', () => {
+                const input = document.getElementById('rk-equation');
+                if (input) {
+                    input.value = mathField.getValue('latex');
+                }
+            });
+        }
+        return children;
+    }
+    """,
+    Output("rk-mathlive-container", "children"),
+    Input("rk-mathlive-container", "children"),
+)
+
+
 # Callback para atualizar o RangeSlider com base nos inputs
 @app.callback(
     Output("intervalo", "min"),
@@ -371,7 +522,6 @@ def calcular_bissecao(n_clicks, intervalo, funcao, interacoes, tolerancia):
             tol=tolerancia,
             disp=False,
         )  # Aumenta o número máximo de iterações
-        print(df.to_dict("records"))
         return df.to_dict("records")
     except Exception as e:
         return [f"Erro ao calcular a bisseção.{e}"]
@@ -513,16 +663,18 @@ def tab_bissecao(df, intervalo, funcao):
         # traceback.print_exc()
         resultado = f"O método da bisseção não convergiu após {iteracoes} iterações. Por que {e}"
 
-        return html.Div([
-            html.H5(
-                children="Tabela de interções usando Método da Bisseção"
-            ),  # Título do método
-            dcc.Markdown(
-                "{resultado}".format(resultado=resultado),
-                mathjax=True,
-                style={"font-size": "14pt"},
-            ),
-        ])
+        return html.Div(
+            [
+                html.H5(
+                    children="Tabela de interções usando Método da Bisseção"
+                ),  # Título do método
+                dcc.Markdown(
+                    "{resultado}".format(resultado=resultado),
+                    mathjax=True,
+                    style={"font-size": "14pt"},
+                ),
+            ]
+        )
 
 
 # Chamada para calcular o metodo da falsa posição e armazenar o dataframe
@@ -621,16 +773,18 @@ def tab_falsaposicao(df, intervalo, funcao):
         # traceback.print_exc()
         resultado = f"O método da Falsa Posição não convergiu após {iteracoes} iterações. Por que {e}"
 
-        return html.Div([
-            html.H5(
-                children="Tabela de interções usando Método da Falsa Posição"
-            ),  # Título do método
-            dcc.Markdown(
-                "{resultado}".format(resultado=resultado),
-                mathjax=True,
-                style={"font-size": "14pt"},
-            ),
-        ])
+        return html.Div(
+            [
+                html.H5(
+                    children="Tabela de interções usando Método da Falsa Posição"
+                ),  # Título do método
+                dcc.Markdown(
+                    "{resultado}".format(resultado=resultado),
+                    mathjax=True,
+                    style={"font-size": "14pt"},
+                ),
+            ]
+        )
 
 
 def grafico_animado(intervalo, funcao, df, saida):
@@ -940,6 +1094,8 @@ def navbar_is_open(opened, navbar):
 def navbar_is_closed(tab, navbar):
     if tab == "gaus":
         navbar["collapsed"] = {"desktop": True, "mobile": True}
+    elif tab == "runge_kutta":
+        navbar["collapsed"] = {"desktop": True, "mobile": True}
     else:
         navbar["collapsed"] = {"desktop": False, "mobile": True}
     return navbar
@@ -1235,7 +1391,7 @@ def ponto_fixo(n_clicks, intervalo, funcao, interacoes, tolerancia):
     try:
         funcao1, funcao_simbolica = tratar_funcao(funcao)
         funcao_simbolica = funcao_latex(funcao_simbolica)
-        x, tabela, iteracoes = iteracao_linear(
+        x, tabela, iteracoes, mensagem_erro = iteracao_linear(
             funcao1, intervalo[0], maxiter=interacoes, tol=tolerancia, full_output=True
         )
         fig = grafico_animado(intervalo, funcao, tabela, "Ponto Fixo")
@@ -1249,6 +1405,12 @@ def ponto_fixo(n_clicks, intervalo, funcao, interacoes, tolerancia):
             ),
             html.Div(
                 children=[
+                    html.H5(children="Mensagem de erro:"),
+                    dcc.Markdown(
+                        "{mensagem_erro}".format(mensagem_erro=mensagem_erro),
+                        mathjax=True,
+                        style={"font-size": "14pt"},
+                    ),
                     html.H5(
                         children="Tabela de interções usando Método da Iteração Linear"
                     ),  # Título do método

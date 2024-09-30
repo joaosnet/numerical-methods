@@ -17,6 +17,7 @@ antlr4-python3-runtime = "4.11"
 dash-mantine-components = "^0.14.4"
 dash-iconify = "^0.1.2"
 array-to-latex = "^0.92"
+dash-resizable-panels = "^0.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-env = "^1.1.3"
