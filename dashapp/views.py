@@ -123,61 +123,56 @@ left_column = html.Div(
 # Coluna Esquerda
 right_column = html.Div(
     id="right-column",
-    # className="eight columns",
     children=[
         dcc.Store(id="df-Bissec"),
         dcc.Store(id="df-Falsa"),
-        dcc.Tabs(
-            id="tabs-methods",
-            value="Bisseção",
-            children=[
-                dcc.Tab(
+        dmc.Tabs(
+            [
+                dmc.TabsList(
+                    [
+                        dmc.TabsTab("Bisseção", value="bissecao"),
+                        dmc.TabsTab("Falsa Posição", value="falsa_posicao"),
+                        dmc.TabsTab("Comparações entre Métodos", value="comparacoes"),
+                        dmc.TabsTab("Método da Iteração Linear (Ponto Fixo)", value="ponto_fixo"),
+                        dmc.TabsTab("Método de Newton-Raphson", value="newton"),
+                        dmc.TabsTab("Método da Secante", value="secante"),
+                        dmc.TabsTab("Eliminação de Gauss", value="gauss"),
+                        dmc.TabsTab("Método de Runge-Kutta de 3ª Ordem e 4ª Ordem", value="runge_kutta"),
+                    ]
+                ),
+                dmc.TabsPanel(
+                    children=[],
                     id="bissecao",
-                    value="Bisseção",
-                    label="Bisseção",
-                    children=[],
+                    value="bissecao",
                 ),
-                dcc.Tab(
+                dmc.TabsPanel(
+                    children=[],
                     id="falsap-tab",
-                    value="Falsa Posição",
-                    label="Falsa Posição",
-                    children=[],
+                    value="falsa_posicao",
                 ),
-                dcc.Tab(
-                    label="Comparações entre Métodos",
+                dmc.TabsPanel(
                     children=[
-                        html.Div(
-                            id="tabela_bissec",
-                            children=[],
-                        ),
-                        html.Div(
-                            id="tabela_falsa",
-                            children=[],
-                        ),
+                        html.Div(id="tabela_bissec", children=[]),
+                        html.Div(id="tabela_falsa", children=[]),
                     ],
+                    value="comparacoes",
                 ),
-                dcc.Tab(
+                dmc.TabsPanel(
+                    children=[],
                     id="ponto_fixo",
                     value="ponto_fixo",
-                    label="Método da Iteração Linear (Ponto Fixo)",
-                    children=[],
                 ),
-                dcc.Tab(
+                dmc.TabsPanel(
+                    children=[],
                     id="newton",
                     value="newton",
-                    label="Método de Newton-Raphson",
-                    children=[],
                 ),
-                dcc.Tab(
+                dmc.TabsPanel(
+                    children=[],
                     id="secant",
-                    value="secant",
-                    label="Método da Secante",
-                    children=[],
+                    value="secante",
                 ),
-                dcc.Tab(
-                    id="gaus",
-                    value="gaus",
-                    label="Eliminação de Gauss",
+                dmc.TabsPanel(
                     children=[
                         html.Div(
                             id="gauss_controls",
@@ -190,7 +185,6 @@ right_column = html.Div(
                                     type="text",
                                     value="[[2, 4, 3, 4, 8],[5, 8, 7, 8, 8],[9, 13, 11, 12, 7],[2, 3, 2, 5, 6],]",
                                 ),
-                                # previsulizando a matriz
                                 dcc.Markdown(id="matrix-preview", mathjax=True),
                                 html.Hr(),
                                 html.Br(),
@@ -210,11 +204,9 @@ right_column = html.Div(
                             children=[],
                         ),
                     ],
+                    value="gauss",
                 ),
-                dcc.Tab(
-                    id="runge_kutta",
-                    value="runge_kutta",
-                    label="Método de Runge-Kutta de 3ª Ordem e 4ª Ordem",
+                dmc.TabsPanel(
                     children=[
                         PanelGroup(
                             direction="horizontal",
@@ -300,8 +292,11 @@ right_column = html.Div(
                             ],
                         )
                     ],
+                    value="runge_kutta",
                 ),
             ],
+            id="tabs-methods",
+            value="bissecao",
         ),
     ],
 )
@@ -993,45 +988,134 @@ def grafico_animado(intervalo, funcao, df, saida):
                 sliders_dict["steps"].append(slider_step)
 
         elif saida == "Ponto Fixo":
+            #proximo frame
             for i, row in df.iterrows():
                 frame = {"data": [], "name": str(i)}
-                # Reta do Ponto fixo
-                # frame["data"].append(
-                #     go.Scatter(
-                #         x=[
-                #             row["Início do Intervalo (xl)"],
-                #             row["Final do Intervalo (xu)"],
-                #         ],
-                #         y=[row["f(xl)"], row["f(xu)"]],
-                #         mode="lines",
-                #         name="Intervalo [a, b]",
-                #     )
-                # )
+                frame["data"].append(
+                    go.Scatter(
+                        x=[row["x"]],
+                        y=[funcao(row["x"])],
+                        mode="markers",
+                        name="Aproximação da Raiz",
+                        marker=dict(color="red", size=10),
+                    )
+                )
+                frame["data"].append(
+                    go.Scatter(
+                        x=[row["x"], row["x"]],
+                        y=[0, funcao(row["x"])],
+                        mode="lines",
+                        name="Linha de Convergência",
+                        line=dict(color="green", width=2),
+                    )
+                )
+                fig_dict["frames"].append(frame)
+                slider_step = {
+                    "args": [
+                        [i],
+                        {
+                            "frame": {"duration": 300, "redraw": False},
+                            "mode": "immediate",
+                            "transition": {"duration": 300},
+                        },
+                    ],
+                    "label": i,
+                    "method": "animate",
+                }
+                sliders_dict["steps"].append(slider_step)
+        elif saida == "Newton-Raphson":
+            for i, row in df.iterrows():
+                frame = {"data": [], "name": str(i)}
+                x_i = row["Aproximação da Raiz (x_i)"]
+                y_i = funcao(x_i)
+                
+                # Ponto da iteração atual
+                frame["data"].append(
+                    go.Scatter(
+                        x=[x_i],
+                        y=[y_i],
+                        mode="markers",
+                        name=f"Iteração {i}",
+                        marker=dict(color="red", size=10),
+                    )
+                )
+                
+                # Linha tangente
+                if i < len(df) - 1:
+                    x_next = df.loc[i+1, "Aproximação da Raiz (x_i)"]
+                    slope = (funcao(x_next) - y_i) / (x_next - x_i)
+                    x_tangent = np.linspace(x_i - 0.5, x_i + 0.5, 100)
+                    y_tangent = slope * (x_tangent - x_i) + y_i
+                    frame["data"].append(
+                        go.Scatter(
+                            x=x_tangent,
+                            y=y_tangent,
+                            mode="lines",
+                            name="Tangente",
+                            line=dict(color="green", width=2, dash="dash"),
+                        )
+                    )
+                
+                fig_dict["frames"].append(frame)
+                slider_step = {
+                    "args": [
+                        [i],
+                        {
+                            "frame": {"duration": 300, "redraw": False},
+                            "mode": "immediate",
+                            "transition": {"duration": 300},
+                        },
+                    ],
+                    "label": i,
+                    "method": "animate",
+                }
+                sliders_dict["steps"].append(slider_step)
 
-                # frame["data"].append(
-                #     go.Scatter(
-                #         x=[row["Aproximação da Raiz (xr)"]],
-                #         y=[0],
-                #         mode="markers",
-                #         name="Aproximação da Raiz",
-                #         marker=dict(color="red", size=10),
-                #     )
-                # )
-
-                # fig_dict["frames"].append(frame)
-                # slider_step = {
-                #     "args": [
-                #         [i],
-                #         {
-                #             "frame": {"duration": 300, "redraw": False},
-                #             "mode": "immediate",
-                #             "transition": {"duration": 300},
-                #         },
-                #     ],
-                #     "label": i,
-                #     "method": "animate",
-                # }
-                # sliders_dict["steps"].append(slider_step)
+        elif saida == "Secante":
+            for i, row in df.iterrows():
+                frame = {"data": [], "name": str(i)}
+                x_i = row["Aproximação da Raiz (x_i)"]
+                y_i = funcao(x_i)
+                
+                # Ponto da iteração atual
+                frame["data"].append(
+                    go.Scatter(
+                        x=[x_i],
+                        y=[y_i],
+                        mode="markers",
+                        name=f"Iteração {i}",
+                        marker=dict(color="red", size=10),
+                    )
+                )
+                
+                # Linha secante
+                if i < len(df) - 1:
+                    x_next = df.loc[i+1, "Aproximação da Raiz (x_i)"]
+                    y_next = funcao(x_next)
+                    frame["data"].append(
+                        go.Scatter(
+                            x=[x_i, x_next],
+                            y=[y_i, y_next],
+                            mode="lines",
+                            name="Secante",
+                            line=dict(color="purple", width=2, dash="dash"),
+                        )
+                    )
+                
+                fig_dict["frames"].append(frame)
+                slider_step = {
+                    "args": [
+                        [i],
+                        {
+                            "frame": {"duration": 300, "redraw": False},
+                            "mode": "immediate",
+                            "transition": {"duration": 300},
+                        },
+                    ],
+                    "label": i,
+                    "method": "animate",
+                }
+                sliders_dict["steps"].append(slider_step)
 
         fig_dict["layout"]["sliders"] = [sliders_dict]
 
