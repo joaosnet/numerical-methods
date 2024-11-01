@@ -1,132 +1,132 @@
-# Métodos Numéricos
+# Numerical Methods
 
-![Tamanho do repositório do GitHub](https://img.shields.io/github/repo-size/joaosnet/numerical-methods?style=for-the-badge)
-![Contagem de linguagens do GitHub](https://img.shields.io/github/languages/count/joaosnet/numerical-methods?style=for-the-badge)
-![Forks do GitHub](https://img.shields.io/github/forks/joaosnet/numerical-methods?style=for-the-badge)
-[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg?style=for-the-badge)](https://github.com/joaosnet/numerical-methods/blob/master/README.pt-br.md)
+![GitHub Repo Size](https://img.shields.io/github/repo-size/joaosnet/numerical-methods?style=for-the-badge)
+![GitHub Languages Count](https://img.shields.io/github/languages/count/joaosnet/numerical-methods?style=for-the-badge)
+![GitHub Forks](https://img.shields.io/github/forks/joaosnet/numerical-methods?style=for-the-badge)
+[![Language: pt-br](https://img.shields.io/badge/lang-pt--br-green.svg?style=for-the-badge)](https://github.com/joaosnet/numerical-methods/blob/master/README.pt-br.md)
 
 <img align="right" src="screenshots/dash.png" width="256"/>
 
-## Introdução
+## Introduction
 
-O projeto **Métodos Numéricos** oferece uma plataforma interativa para explorar métodos numéricos aplicados à engenharia. Desenvolvido em Python, o aplicativo permite a aplicação e visualização de algoritmos matemáticos, sendo útil para aprendizado e análises. O site está disponível [aqui](https://numerical-methods-7wxf.onrender.com/).
+The **Numerical Methods** project provides an interactive platform to explore numerical methods applied to engineering. Developed in Python, this application allows for the application and visualization of mathematical algorithms, making it useful for learning and analysis. The site is available [here](https://numerical-methods-7wxf.onrender.com/).
 
-## Tecnologias Utilizadas
+## Technologies Used
 
 <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" /> <img src="https://img.shields.io/badge/Plotly-239120?style=for-the-badge&logo=plotly&logoColor=white" /> <img src="https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white" /> <img src="https://img.shields.io/badge/Numpy-777BB4?style=for-the-badge&logo=numpy&logoColor=white" /> <img src="https://img.shields.io/badge/dash-008DE4?style=for-the-badge&logo=dash&logoColor=white" /> <img src="https://img.shields.io/badge/Poetry-%233B82F6.svg?style=for-the-badge&logo=poetry&logoColor=0B3D8D" />
 
-## Índice
+## Table of Contents
 
-* [Introdução](#introdução)
-* [Tecnologias Utilizadas](#tecnologias-utilizadas)
-* [Como Usar](#como-usar)
-* [Capturas de Tela](#capturas-de-tela)
-* [Contribuindo](#contribuindo)
-* [Atualizando o Repositório](#atualizando-o-repositório)
+* [Introduction](#introduction)
+* [Technologies Used](#technologies-used)
+* [How to Use](#how-to-use)
+* [Screenshots](#screenshots)
+* [Contributing](#contributing)
+* [Updating the Repository](#updating-the-repository)
 
-## Como Usar
+## How to Use
 
-### Pré-requisitos
+### Prerequisites
 
-1. Instale o gerenciador `pyenv` para gerenciar versões do Python:
-   - [Instruções para Windows](https://github.com/pyenv-win/pyenv-win#installation)
-   - [Instruções para Linux](https://github.com/pyenv/pyenv#installation)
+1. Install the `pyenv` version manager to manage Python versions:
+   - [Instructions for Windows](https://github.com/pyenv-win/pyenv-win#installation)
+   - [Instructions for Linux](https://github.com/pyenv/pyenv#installation)
    
-2. Instale o `pipx` para gerenciar dependências isoladas.
+2. Install `pipx` to manage isolated dependencies.
 
-### Instalação
+### Installation
 
-#### Windows e Linux
+#### Windows and Linux
 
-1. Atualize o `pyenv`:
+1. Update `pyenv`:
    ```bash
    pyenv update
    ```
-2. Instale o Python 3.12:
+2. Install Python 3.12:
    ```bash
    pyenv install 3.12
    ```
-3. Defina o ambiente Python local e global:
+3. Set the local and global Python environment:
    ```bash
    pyenv local 3.12
    pyenv global 3.12
    ```
-4. Instale o `pipx`:
+4. Install `pipx`:
    ```bash
    pip install pipx
    ```
-5. Instale o `poetry` com o `pipx`:
+5. Install `poetry` using `pipx`:
    ```bash
    pipx install poetry
    ```
-6. Configure o `poetry` para criar o ambiente virtual no diretório do projeto:
+6. Configure `poetry` to create the virtual environment within the project directory:
    ```bash
    poetry config virtualenvs.in-project true
    ```
-7. Clone o repositório:
+7. Clone the repository:
    ```bash
    git clone https://github.com/joaosnet/numerical-methods.git
    ```
-8. Instale as dependências do projeto:
+8. Install the project dependencies:
    ```bash
    poetry install
    ```
-9. Execute o aplicativo:
+9. Run the application:
    ```bash
    python main.py
    ```
    
-### Criar o arquivo `requirements.txt`
+### Create the `requirements.txt` File
 
-Caso precise de um arquivo `requirements.txt` para outras implementações:
+If you need a `requirements.txt` file for other implementations:
 
 ```bash
 poetry export --without-hashes --without-urls --without dev -f requirements.txt -o requirements.txt
 ```
 
-## Capturas de Tela
+## Screenshots
 
-![Captura de Tela](screenshots/dash.png)
+![Screenshot](screenshots/dash.png)
 
-_Visualização do dashboard mostrando métodos numéricos aplicados._
+_Dashboard view showcasing applied numerical methods._
 
-## Contribuindo
+## Contributing
 
-Se deseja contribuir para o desenvolvimento do projeto, siga os passos abaixo:
+To contribute to this project, please follow these steps:
 
-1. Faça um fork do repositório.
-2. Clone seu fork para o ambiente local.
-3. Crie uma nova branch para suas alterações:
+1. Fork the repository.
+2. Clone your fork to your local environment.
+3. Create a new branch for your changes:
    ```bash
-   git checkout -b nome-da-sua-branch
+   git checkout -b your-branch-name
    ```
-4. Realize as modificações e faça commit:
+4. Make your changes and commit them:
    ```bash
-   git commit -m "Descrição das alterações"
+   git commit -m "Description of changes"
    ```
-5. Envie suas mudanças para o repositório remoto:
+5. Push your changes to the remote repository:
    ```bash
-   git push origin nome-da-sua-branch
+   git push origin your-branch-name
    ```
-6. Abra um pull request no repositório original.
+6. Open a pull request on the original repository.
 
-## Atualizando o Repositório
+## Updating the Repository
 
-Para manter o repositório atualizado com as últimas mudanças:
+To keep your repository up to date with the latest changes:
 
-1. Puxe as últimas mudanças:
+1. Pull the latest changes:
    ```bash
    git pull
    ```
-2. Adicione novos arquivos ou alterações:
+2. Add any new files or changes:
    ```bash
    git add .
    ```
-3. Faça commit das mudanças:
+3. Commit the changes:
    ```bash
-   git commit -m "Atualizando repositório"
+   git commit -m "Updating repository"
    ```
-4. Envie para o repositório remoto:
+4. Push to the remote repository:
    ```bash
    git push
    ```
